@@ -22,6 +22,7 @@
 </style>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
 <script>
 
 var width = 960,
@@ -52,29 +53,21 @@ var m0, o0;
 
 svg.on("mousemove", function() {
   if (m0) {
-    //var p = d3.mouse(this);
     var m1 = d3.mouse(this), //[d3.event.pageX, d3.event.pageY],
         o1 = [o0[0] + (m1[0] - m0[0]) / 4, o0[1] + (m0[1] - m1[1]) / 2];
-    //ords = [λ(p[0]) + o1[0], φ(p[1]) + o1[1]];
     //console.log(ords);
     projection.rotate(o1);
     svg.selectAll("path").attr("d", path);
   }
 });
 svg.on("mousedown", function() {
-  m0 = [d3.event.pageX, d3.event.pageY];
   m0 = d3.mouse(this);
-  //o0 = projection.origin();
   o0 = projection.rotate();
-  //o1 = projection.rotate();
-  console.log('down');
-  console.log(d3.mouse(this));
   d3.event.preventDefault();
 });
 
 svg.on("mouseup",function mouseup() {
   if (m0) {
-    //mousemove();
     m0 = null; o1 = null;
   }
 });
@@ -91,11 +84,42 @@ d3.json("/world-110m.json", function(error, world) {
       .attr("class", "land")
       .attr("d", path); 
 
-  // Draw county borders.
+      // Draw county borders.
+      console.log(topojson.feature(world, world.objects.land));
+      console.log(topojson.feature(world, world.objects.land));
+      console.log(world.objects.land[0]);
   svg.append("path")
       .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
       .attr("class", "boundary")
       .attr("d", path);
+      
+  d3.json("davefb.json", function(error, fbfqldata) {
+    var fbgeo = fbtogeo(fbfqldata);
+    _.each(fbgeo, function(f) {
+      svg.append("path")
+        .datum(f)
+        .attr("d", path)
+        .attr("class", "place");
+    });
+  });
 });
+
+function fbtogeo(fbdata){
+  return _.map(fbdata.data, function(fbloc){
+    return {
+      "type": "Feature",
+      "id": "",
+      "properties": {},
+      "geometry": {
+          "type": "Point",
+          "coordinates": [
+              fbloc.coords.longitude,
+              fbloc.coords.latitude
+          ]
+      }
+    }
+  });
+};
+    
 
 </script>
