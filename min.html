@@ -48,25 +48,25 @@ var svg = d3.select("body").append("svg")
     .attr("height", height);
 
 
-var m0, o1;
+var m0, o0;
 
 svg.on("mousemove", function() {
   if (m0) {
-    var p = d3.mouse(this);
-    ords = [λ(p[0] + λ.invert(o1[0])), φ(p[1] + φ.invert(o1[1]))];
-    ords = [λ(p[0]) + o1[0], φ(p[1]) + o1[1]];
-    console.log(ords);
-    projection.rotate(ords);
+    //var p = d3.mouse(this);
+    var m1 = d3.mouse(this), //[d3.event.pageX, d3.event.pageY],
+        o1 = [o0[0] + (m1[0] - m0[0]) / 4, o0[1] + (m0[1] - m1[1]) / 2];
+    //ords = [λ(p[0]) + o1[0], φ(p[1]) + o1[1]];
+    //console.log(ords);
+    projection.rotate(o1);
     svg.selectAll("path").attr("d", path);
   }
 });
 svg.on("mousedown", function() {
   m0 = [d3.event.pageX, d3.event.pageY];
+  m0 = d3.mouse(this);
   //o0 = projection.origin();
-  o1 = projection.rotate();
+  o0 = projection.rotate();
   //o1 = projection.rotate();
-  console.log('orig');
-  console.log(o1);
   console.log('down');
   console.log(d3.mouse(this));
   d3.event.preventDefault();
