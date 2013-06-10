@@ -19,6 +19,14 @@
   stroke: #fff;
   stroke-width: .5px;
 }
+.flight {
+  stroke: #ee22ff;
+  stroke-width: 2px;
+  fill: none;
+}
+.point {
+  fill: #ff8822;
+}
 </style>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
@@ -35,6 +43,8 @@ var projection = d3.geo.orthographic()
 
 var path = d3.geo.path()
     .projection(projection);
+
+var circle = d3.geo.circle();
 
 var λ = d3.scale.linear()
     .domain([0, width])
@@ -85,9 +95,6 @@ d3.json("/world-110m.json", function(error, world) {
       .attr("d", path); 
 
       // Draw county borders.
-      console.log(topojson.feature(world, world.objects.land));
-      console.log(topojson.feature(world, world.objects.land));
-      console.log(world.objects.land[0]);
   svg.append("path")
       .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
       .attr("class", "boundary")
@@ -95,12 +102,46 @@ d3.json("/world-110m.json", function(error, world) {
       
   d3.json("davefb.json", function(error, fbfqldata) {
     var fbgeo = fbtogeo(fbfqldata);
-    _.each(fbgeo, function(f) {
+    /*svg.selectAll('path')
+      .data(fbgeo)
+      .enter().append('path').attr('d', path);*/
+    /*_.each(fbgeo, function(f) {
       svg.append("path")
-        .datum(f)
+        .datum(
+          circle
+            .origin(f.coordinates)
+            .angle(2)()
+        )
         .attr("d", path)
         .attr("class", "place");
-    });
+      });*/
+    /*svg.selectAll("path.point")
+      .data(fbgeo)
+      .enter().append("path")
+        .datum(function(d) {
+           return circle
+               .origin(d.geometry.coordinates)
+               .angle(1)();
+        })
+        .attr("class", "point")
+        .attr("d", path); */
+    svg.selectAll("path.point")
+      .data(fbgeo)
+      .enter().append("path")
+        .datum(function(d) { return d })
+        .attr("class", "point")
+        .attr("d", path.pointRadius(2));
+
+        var coords = [fbgeo.pop().geometry.coordinates, fbgeo.pop().geometry.coordinates];
+        console.log(coords);
+    //svg.selectAll("path.flight")
+    //  .data(coords)
+    //  .enter().append("path")
+    svg.append("path")
+        .datum({"type": "LineString",
+          "coordinates": coords})
+        .attr("class", "flight")
+        .attr("d", path);
   });
 });
 
