@@ -24,6 +24,11 @@
       stroke-width: 2px;
       fill: none;
     }
+    .trail {
+      stroke: #aabb66;
+      stroke-width: 2px;
+      fill: none;
+    }
     .point {
       fill: #ff8822;
     }
@@ -42,7 +47,7 @@
     height = 500;
 
     var projection = d3.geo.orthographic()
-    .scale(480)
+    .scale(420)
     .translate([width / 2, height / 2])
     .clipAngle(90);
 
@@ -118,20 +123,10 @@
         svg.selectAll("path.point")
           .data(fbgeo)
           .enter().append("path")
-          .datum(function(d) { return d })
           .attr("class", "point")
           .attr("d", path.pointRadius(2)); 
 
-        var coords = [fbgeo.pop().geometry.coordinates, fbgeo.pop().geometry.coordinates];
-        console.log(coords);
-
-        //svg.selectAll("path.flight")
-        //  .data(coords)
-        //  .enter().append("path")
-        svg.append("path")
-        .datum({"type": "LineString",
-          "coordinates": coords})
-        .attr("class", "flight");
+        moveTo(fbgeo[0].geometry.coordinates);
 
       });
     });
@@ -157,13 +152,25 @@
     
     function drawTrailUpTo(points, timestamp) {
       var filteredPoints = _.reject(points, function(p,i) { return p.properties.timestamp > timestamp });
-      _.each(filteredPoints, function(p, i) {
+      var arcs = _.map(filteredPoints, function(p, i) {
         if (i == 0) return;
-        
-        svg.append("path")
-          .datum({"type": "LineString", "coordinates": [ filteredPoints[i-1].geometry.coordinates, p.geometry.coordinates ] })
-          .attr("class", "flight");
+        return { "type": "LineString", "coordinates": [ filteredPoints[i-1].geometry.coordinates, p.geometry.coordinates ]};
       });
+      arcs.shift();
+      var trails = 
+        svg.selectAll("path.trail")
+        .data(arcs);
+        
+      trails.enter().append("path")
+        .attr("class", "trail")
+        .attr("d", path);
+      
+      trails.exit().remove();
+      
+        /*svg.selectAll("path.point")
+          .data(fbgeo)
+          .enter().append("path")
+          .datum(function(d) { return d })*/
     }
 
     function moveTo(point) {
