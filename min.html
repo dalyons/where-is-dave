@@ -42,7 +42,7 @@
     height = 500;
 
     var projection = d3.geo.orthographic()
-    .scale(380)
+    .scale(480)
     .translate([width / 2, height / 2])
     .clipAngle(90);
 
@@ -109,18 +109,18 @@
 
       // Draw county borders.
       svg.append("path")
-      .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
-      .attr("class", "boundary")
-      .attr("d", path);
+        .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+        .attr("class", "boundary")
+        .attr("d", path);
 
       d3.json("davefb.json", function(error, fbfqldata) {
         fbgeo = fbtogeo(fbfqldata);
         svg.selectAll("path.point")
-        .data(fbgeo)
-        .enter().append("path")
-        .datum(function(d) { return d })
-        .attr("class", "point")
-        .attr("d", path.pointRadius(2)); 
+          .data(fbgeo)
+          .enter().append("path")
+          .datum(function(d) { return d })
+          .attr("class", "point")
+          .attr("d", path.pointRadius(2)); 
 
         var coords = [fbgeo.pop().geometry.coordinates, fbgeo.pop().geometry.coordinates];
         console.log(coords);
@@ -137,11 +137,12 @@
     });
 
     function fbtogeo(fbdata){
-      return _.map(fbdata.data, function(fbloc){
+      var fbdata_sorted = _.sortBy(fbdata.data, function(o) { return o.timestamp; });
+      return _.map(fbdata_sorted, function(fbloc){
         return {
           "type": "Feature",
           "id": "",
-          "properties": {},
+          "properties": { "timestamp": fbloc.timestamp },
           "berlarky": fbloc,
           "geometry": {
             "type": "Point",
@@ -153,11 +154,22 @@
         }
       });
     };
+    
+    function drawTrailUpTo(points, timestamp) {
+      var filteredPoints = _.reject(points, function(p,i) { return p.properties.timestamp > timestamp });
+      _.each(filteredPoints, function(p, i) {
+        if (i == 0) return;
+        
+        svg.append("path")
+          .datum({"type": "LineString", "coordinates": [ filteredPoints[i-1].geometry.coordinates, p.geometry.coordinates ] })
+          .attr("class", "flight");
+      });
+    }
 
     function moveTo(point) {
       d3.transition()
         .delay(150)
-        .duration(150)
+        .duration(650)
         .tween("rotate", function() {
           var rotate = d3.interpolate(projection.rotate(), [-point[0], -point[1]]);
           return function(t) {
@@ -180,5 +192,6 @@
     var fbp = fbgeo[Math.round(percent * fbgeo.length)];
     console.log(fbp.berlarky);
     moveTo(fbp.geometry.coordinates);
+    drawTrailUpTo(fbgeo, fbp.properties.timestamp);
   });
 </script>
