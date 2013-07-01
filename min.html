@@ -1,137 +1,123 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <body>
-<style>
+  <style>
 
-.graticule {
-  fill: none;
-  stroke: #777;
-  stroke-opacity: .5;
-  stroke-width: .5px;
-}
+    .graticule {
+      fill: none;
+      stroke: #777;
+      stroke-opacity: .5;
+      stroke-width: .5px;
+    }
 
-.land {
-  fill: grey;
-}
+    .land {
+      fill: grey;
+    }
 
-.boundary {
-  fill: none;
-  stroke: #fff;
-  stroke-width: .5px;
-}
-.flight {
-  stroke: #ee22ff;
-  stroke-width: 2px;
-  fill: none;
-}
-.point {
-  fill: #ff8822;
-}
-#timeslide {
-  width: 100%;
-}
-</style>
-<script src="/d3.v3.js"></script>
-<script src="/topojson.v1.js"></script>
-<script src="/underscore-min.js"></script>
-<script>
+    .boundary {
+      fill: none;
+      stroke: #fff;
+      stroke-width: .5px;
+    }
+    .flight {
+      stroke: #ee22ff;
+      stroke-width: 2px;
+      fill: none;
+    }
+    .point {
+      fill: #ff8822;
+    }
+    .timeslide {
+      width: 100%;
+    }
+  </style>
+  <script src="/d3.v3.js"></script>
+  <script src="/topojson.v1.js"></script>
+  <script src="/underscore-min.js"></script>
+  <!--<script src="/dave.js"</script>-->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script>
 
-var width = 960,
+    var width = 960,
     height = 500;
 
-var projection = d3.geo.orthographic()
+    var projection = d3.geo.orthographic()
     .scale(380)
     .translate([width / 2, height / 2])
     .clipAngle(90);
 
-var path = d3.geo.path()
+    var path = d3.geo.path()
     .projection(projection);
 
-var circle = d3.geo.circle();
+    var circle = d3.geo.circle();
 
-var λ = d3.scale.linear()
+    var λ = d3.scale.linear()
     .domain([0, width])
     .range([-180, 180]);
 
-var φ = d3.scale.linear()
+    var φ = d3.scale.linear()
     .domain([0, height])
     .range([90, -90]);
 
-var svg = d3.select("body").append("svg")
+    var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
 
+    /****
+    ** Handle drag/mouse move events 
+    */
+    var m0, o0;
 
-var m0, o0;
-
-svg.on("mousemove", function() {
-  if (m0) {
-    var m1 = d3.mouse(this), //[d3.event.pageX, d3.event.pageY],
+    svg.on("mousemove", function() {
+      if (m0) {
+        var m1 = d3.mouse(this), //[d3.event.pageX, d3.event.pageY],
         o1 = [o0[0] + (m1[0] - m0[0]) / 4, o0[1] + (m0[1] - m1[1]) / 2];
-    //console.log(ords);
-    projection.rotate(o1);
-    svg.selectAll("path").attr("d", path);
-  }
-});
-svg.on("mousedown", function() {
-  m0 = d3.mouse(this);
-  o0 = projection.rotate();
-  d3.event.preventDefault();
-});
+        //console.log(ords);
+        projection.rotate(o1);
+        svg.selectAll("path").attr("d", path);
+      }
+    });
+    svg.on("mousedown", function() {
+      m0 = d3.mouse(this);
+      o0 = projection.rotate();
+      d3.event.preventDefault();
+    });
 
-svg.on("mouseup",function mouseup() {
-  if (m0) {
-    m0 = null; o1 = null;
-  }
-});
+    svg.on("mouseup",function mouseup() {
+      if (m0) {
+        m0 = null; o1 = null;
+      }
+    });
 
-d3.json("/world-110m.json", function(error, world) {
-    /*svg.selectAll("path")
+
+    /*** 
+    ** Load data 
+    ****/
+    var fbgeo;
+    d3.json("/world-110m.json", function(error, world) {
+      /*svg.selectAll("path")
       .data(topojson.feature(world, world.objects.countries)
-          .geometries)
-    .enter()
+      .geometries)
+      .enter()
       .append("path")
       .attr("d", path) */
-   svg.append("path")
-      .datum(topojson.feature(world, world.objects.land))
-      .attr("class", "land")
-      .attr("d", path); 
+      svg.append("path")
+        .datum(topojson.feature(world, world.objects.land))
+        .attr("class", "land")
+        .attr("d", path); 
 
       // Draw county borders.
-  svg.append("path")
+      svg.append("path")
       .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
       .attr("class", "boundary")
       .attr("d", path);
-      
-  d3.json("davefb.json", function(error, fbfqldata) {
-    var fbgeo = fbtogeo(fbfqldata);
-    /*svg.selectAll('path')
-      .data(fbgeo)
-      .enter().append('path').attr('d', path);*/
-    /*_.each(fbgeo, function(f) {
-      svg.append("path")
-        .datum(
-          circle
-            .origin(f.coordinates)
-            .angle(2)()
-        )
-        .attr("d", path)
-        .attr("class", "place");
-      });*/
-    /*svg.selectAll("path.point")
-      .data(fbgeo)
-      .enter().append("path")
-        .datum(function(d) {
-           return circle
-               .origin(d.geometry.coordinates)
-               .angle(1)();
-        })
-        .attr("class", "point")
-        .attr("d", path); */
-    svg.selectAll("path.point")
-      .data(fbgeo)
-      .enter().append("path")
+
+      d3.json("davefb.json", function(error, fbfqldata) {
+        fbgeo = fbtogeo(fbfqldata);
+        svg.selectAll("path.point")
+        .data(fbgeo)
+        .enter().append("path")
         .datum(function(d) { return d })
         .attr("class", "point")
         .attr("d", path.pointRadius(2)); 
@@ -139,55 +125,60 @@ d3.json("/world-110m.json", function(error, world) {
         var coords = [fbgeo.pop().geometry.coordinates, fbgeo.pop().geometry.coordinates];
         console.log(coords);
 
-    //svg.selectAll("path.flight")
-    //  .data(coords)
-    //  .enter().append("path")
-    svg.append("path")
+        //svg.selectAll("path.flight")
+        //  .data(coords)
+        //  .enter().append("path")
+        svg.append("path")
         .datum({"type": "LineString",
           "coordinates": coords})
         .attr("class", "flight");
-       /* .attr("d", 
-        function(d) {
-          var source = projection(coords[0]); 
-         var target = projection(coords[1]); 
-         var dx = target[0] - source[0], 
-             dy = target[1] - source[0], 
-                 // var dx = d.target.x - d.source.x,
-                 //     dy = d.target.y - d.source.y,
-              dr = Math.sqrt(dx * dx + dy * dy + 500);
-          return "M" + source[0] + "," + source[0] + "A" + dr + "," + dr +
-                " 0 0,1 " + target[0] + "," + target[1];*/
-            //    }); 
-            
 
-        
-  });
-});
+      });
+    });
 
-function fbtogeo(fbdata){
-  return _.map(fbdata.data, function(fbloc){
-    return {
-      "type": "Feature",
-      "id": "",
-      "properties": {},
-      "geometry": {
-          "type": "Point",
-          "coordinates": [
-              fbloc.coords.longitude,
-              fbloc.coords.latitude
-          ]
-      }
+    function fbtogeo(fbdata){
+      return _.map(fbdata.data, function(fbloc){
+        return {
+          "type": "Feature",
+          "id": "",
+          "properties": {},
+          "berlarky": fbloc,
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+            fbloc.coords.longitude,
+            fbloc.coords.latitude
+            ]
+          }
+        }
+      });
+    };
+
+    function moveTo(point) {
+      d3.transition()
+        .delay(150)
+        .duration(150)
+        .tween("rotate", function() {
+          var rotate = d3.interpolate(projection.rotate(), [-point[0], -point[1]]);
+          return function(t) {
+            projection.rotate(rotate(t));
+            svg.selectAll("path").attr("d", path); //redraw
+          };
+        })
+      .transition();
     }
-  });
-};
-    
 
-</script>
+  </script>
 
 <div>
-  <input type='range' min=0 max=1000 id='timeslide' value=0 >
+  <input type='range' min=0 max=1000 class='timeslide' value=0 >
 </div>
 
 <script>
-  document.find.change(function(){ console.log('something'); })
+  $('.timeslide').on('change', function(e,v,t) {
+    var percent = $(this).val() / 1000.0;
+    var fbp = fbgeo[Math.round(percent * fbgeo.length)];
+    console.log(fbp.berlarky);
+    moveTo(fbp.geometry.coordinates);
+  });
 </script>
