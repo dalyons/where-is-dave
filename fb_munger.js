@@ -46,7 +46,8 @@ function standardize(photos) {
       "timestamp": photo.created,
       "coordinates": photo.coords,
       "description": photo.caption,
-      "src": photo.src
+      "thumbnail": photo.src,
+      "src": photo.src_big
     }
   });
 }

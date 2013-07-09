@@ -54,6 +54,7 @@
       min-height: 90px;
       vertical-align: middle;
       margin-left: 3px;
+      cursor: pointer;
     }
     .album li img {
       border: 2px solid black;
@@ -64,6 +65,15 @@
     }
     .controls { 
       float: right;
+    }
+    .featured {
+      position: absolute;
+      bottom: 200px;
+      right: 0px;
+      width: 400px;
+    }
+    .featured img {
+      width: 380px;
     }
     #defs { //hax
       width: 0; height: 0;
@@ -84,12 +94,21 @@
   </style>
 
   <div class=controls>
-    <input id='fbToken' value='CAACEdEose0cBAAwzyEv2uq3KnAsH5nEyOFNwaHiT4XDZCYh9PFzVOHLwucgO5JX2rHtwCZAYaOSZApOtUqYQ6xKe2gnFXBN2DL2V6zZAOjVVeGhs897BEktIopEUkZBruGYLZAFDWvpQ6Q5HY2tJceDb2ODZCMTtzQZD'>
+    <input id='fbToken' value='CAACEdEose0cBAPYkeGvNpqeoMSZAl5bzDM5Gyi8OMbS5ruKTnhzplIgIgMBNGxOjUfaIZCy1d8rM1I2XZBTpXZBfbrWHcE5ZA00StdEwgZAAgKjIPsQpLlxyzxlulONgyaFYrZAb9531mPSSiSkjwcAjMZAZCPPpG3nUZD'>
     <button id='fbLoad'>Load</button>
   </div>
   
-  <div class=highlight>
-    
+  
+  <div class=main></div>
+
+  <ul class=album>
+  </ul>
+  <div class=featured>
+    <img />
+  </div>
+
+  <div class=timeControls>
+    <input type='range' min=0 max=1000 class='timeslide' value=0 >
   </div>
   
   <script>
@@ -115,7 +134,7 @@
     .domain([0, height])
     .range([90, -90]);
 
-    var svg = d3.select("body").append("svg")
+    var svg = d3.select(".main").append("svg")
     .attr("width", width)
     .attr("height", height);
 
@@ -191,7 +210,7 @@
       return _.map(sorted, function(point){
         return {
           "type": "Feature",
-          "id": "",
+          "id": point.id,
           "properties": point,
           "geometry": {
             "type": "Point",
@@ -203,8 +222,13 @@
     
     function moveTo(point) {
       scrollAlbumTo(point);
+      setFeaturedTo(point);
       moveWorldTo(point.geometry.coordinates);
       drawTrailUpTo(point.properties.timestamp);
+    }
+
+    function setFeaturedTo(point) {
+      $('.featured img').attr('src', point.properties.src)
     }
 
     function drawTrailUpTo(timestamp) {
@@ -252,7 +276,11 @@
         if (_.contains(loadedIds, nextPoint.id))
           continue;
         
-        var elm = $('<li id="' + nextPoint.id + '"><img class="albumImage" src="' + nextPoint.src + '" alt="' + nextPoint.description + '"/></li>');
+        var elm = $(
+          '<li id="' + nextPoint.id + '">' +
+          '<img class="albumImage" src="' + nextPoint.thumbnail + '" alt="' + nextPoint.description + '" data-id="' + nextPoint.id + '"/>' +
+          '</li>'
+        );
         elm.appendTo('.album');
         loadedIds.unshift(nextPoint.id);
       }
@@ -267,16 +295,11 @@
       //trim oldest
       _.each(_.rest(loadedIds, MAX_CACHE_SIZE), function(id) {console.log('clearing elm' + id); $('#' + id).remove() });
       while (loadedIds.length > MAX_CACHE_SIZE) loadedIds.pop();
+      
     };
 
   </script>
 
-  <ul class=album >
-  </ul>
-
-  <div class=timeControls>
-    <input type='range' min=0 max=1000 class='timeslide' value=0 >
-  </div>
 
 
 
@@ -302,6 +325,15 @@
     }
     e.preventDefault();
   });
+  
+  $(function(){
+    $('.album').on('click', 'img', function(){ 
+      var id = $(this).data('id');
+      var point = _.find(locations, function(p) { return p.id.toString() == id });
+      moveTo(point);
+    });
+  });
+
   $('#fbLoad').click(function() {
     var token = $('#fbToken').val()
     fetchFB(token, loadLocationPoints);
