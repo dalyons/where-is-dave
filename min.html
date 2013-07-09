@@ -43,6 +43,9 @@
       width: 100%;
     }
   </style>
+  
+  <div class=album style='float: right; height: 500px; width: 90px; border: 1px solid black'>
+  </div>
   <script>
 
     var width = 960,
@@ -101,7 +104,7 @@
     /*** 
     ** Load data 
     ****/
-    var fbgeo;
+    var locations;
     d3.json("/world-110m.json", function(error, world) {
       /*svg.selectAll("path")
       .data(topojson.feature(world, world.objects.countries)
@@ -120,33 +123,34 @@
         .attr("class", "boundary")
         .attr("d", path);
 
-      d3.json("davefb.json", function(error, fbfqldata) {
-        fbgeo = fbtogeo(fbfqldata);
-        svg.selectAll("path.point")
-          .data(fbgeo)
-          .enter().append("path")
-          .attr("class", "point")
-          .attr("d", path.pointRadius(2)); 
-
-        moveTo(fbgeo[0].geometry.coordinates);
-
-      });
+      //d3.json("davefb.json", function(error, fbfqldata) {
+        //loadLocationPoints(svg, fbfqldata);
+      //});
     });
+    
+    function loadLocationPoints(points) { 
+      locations = geoize(points);
+      console.log(locations);
+      svg.selectAll("path.point")
+        .data(locations)
+        .enter().append("path")
+        .attr("class", "point")
+        .on("click", function(x,y,z){ console.log(x,y,z) })
+        .attr("d", path.pointRadius(2)); 
 
-    function fbtogeo(fbdata){
-      var fbdata_sorted = _.sortBy(fbdata.data, function(o) { return o.timestamp; });
-      return _.map(fbdata_sorted, function(fbloc){
+      moveTo(locations[0].geometry.coordinates);
+    };
+    
+    function geoize(points){
+      var sorted = _.sortBy(points, function(p) { return p.timestamp; });
+      return _.map(sorted, function(point){
         return {
           "type": "Feature",
           "id": "",
-          "properties": { "timestamp": fbloc.timestamp },
-          "berlarky": fbloc,
+          "properties": point,
           "geometry": {
             "type": "Point",
-            "coordinates": [
-            fbloc.coords.longitude,
-            fbloc.coords.latitude
-            ]
+            "coordinates": point.coordinates
           }
         }
       });
@@ -170,7 +174,7 @@
       trails.exit().remove();
       
         /*svg.selectAll("path.point")
-          .data(fbgeo)
+          .data(locations)
           .enter().append("path")
           .datum(function(d) { return d })*/
     }
@@ -188,20 +192,39 @@
         })
       .transition();
     }
+    
+    function scrollAlbumTo(point, index) { 
+      $('.album').empty();
+      for (var i = 0; i < 5; i++) {
+        var img = $('<img class="albumImage" alt="' + locations[index + i].properties.id + '">')
+        img.attr('src', locations[index + i].properties.src);
+        img.appendTo('.album');
+      }
+    };
 
   </script>
 
 
 <div>
-  <input type='range' min=0 max=1000 class='timeslide' value=0 >
+  <input type='range' min=0 max=10000 class='timeslide' value=0 >
 </div>
+
+
+<input id='fbToken' value='CAACEdEose0cBAGifayRFg9FCsdhfhVbMENuJBBb3ZBSB3DPZBvhZA6IEqwXDgjBoFkduLjygEmYtqEYKdSdMZCpNHHPv4mqYZBoW5tqSJSjppVqTQjAIlbQjfuBKJLhTMd4mLuVJX1j5iyfSzav0UClwKF5LtkO4ZD'>
+<button id='fbLoad'>Load</button>
 
 <script>
   jQuery('.timeslide').on('change', function(e,v,t) {
-    var percent = $(this).val() / 1000.0;
-    var fbp = fbgeo[Math.round(percent * fbgeo.length)];
-    console.log(fbp.berlarky);
-    moveTo(fbp.geometry.coordinates);
-    drawTrailUpTo(fbgeo, fbp.properties.timestamp);
+    var percent = $(this).val() / 10000.0;
+    var index = Math.round(percent * locations.length);
+    var point = locations[index];
+    console.log(point);
+    moveTo(point.geometry.coordinates);
+    drawTrailUpTo(locations, point.properties.timestamp);
+    scrollAlbumTo(point, index);
+  });
+  $('#fbLoad').click(function() {
+    var token = $('#fbToken').val()
+    fetchFB(token, loadLocationPoints);
   });
 </script>

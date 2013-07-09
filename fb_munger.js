@@ -1,5 +1,5 @@
 
-function fetch(access_token, onComplete) {
+function fetchFB(access_token, onComplete) {
   var url = buildUrl(access_token);
   
   $.get(url).success(function(json){
@@ -42,10 +42,11 @@ function reconcileBackdates(photos) {
 function standardize(photos) {
   return _.map(photos, function(photo) {
     return {
-      "created": photo.created,
+      "id": photo.object_id,
+      "timestamp": photo.created,
       "coordinates": photo.coords,
       "description": photo.caption,
-      "src": photo.src
+      "src": photo.src_small
     }
   });
 }
@@ -53,7 +54,7 @@ function standardize(photos) {
 
 function buildUrl(access_token) {
   var query = JSON.stringify({
-    "photos": "select object_id, owner, caption, backdated_time, created, src_small, place_id  FROM photo WHERE (object_id IN (SELECT object_id FROM photo_tag WHERE subject='544095626') or owner = 544095626 or owner = 424460880913112) and created > 1339457709 and place_id <> '' order by created",
+    "photos": "select object_id, owner, caption, backdated_time, created, src_small, place_id  FROM photo WHERE (object_id IN (SELECT object_id FROM photo_tag WHERE subject='544095626') or owner = 544095626) and created > 1339457709 and place_id <> '' order by created",
     "places": "select page_id, geometry, name, type from place where page_id in (select place_id from #photos)" 
   });
   
