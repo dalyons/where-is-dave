@@ -206,9 +206,11 @@
     }
     
     var loadedIds = []; 
+    var PRELOAD_COUNT = 20;
+    var MAX_CACHE_SIZE = 100;
     function scrollAlbumTo(point, index) { 
       //add new elements
-      for (var i = 0; i < 10; i++) {
+      for (var i = 0; i < PRELOAD_COUNT; i++) {
         var nextPoint = locations[index + i].properties;
         if (_.contains(loadedIds, nextPoint.id))
           continue;
@@ -216,14 +218,20 @@
         var img = $('<img class="albumImage" id="' + nextPoint.id + '" alt="' + nextPoint.id + '">')
         img.attr('src', nextPoint.src);
         img.appendTo('.album');
-        loadedIds.push(nextPoint.id);
+        loadedIds.unshift(nextPoint.id);
       }
       
       //scroll to the selected one
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
+      //if (currentElm.height() == 0) currentElm.height(130);
       albumContainer.scrollTop(albumContainer.scrollTop() + (currentElm.position().top - albumContainer.position().top));
+      currentElm.load(function(){
+        albumContainer.scrollTop(albumContainer.scrollTop() + (currentElm.position().top - albumContainer.position().top));
+      });
 
       //trim oldest
+      _.each(_.rest(loadedIds, MAX_CACHE_SIZE), function(id) {console.log('clearing elm' + id); $('#' + id).remove() });
+      while (loadedIds.length > MAX_CACHE_SIZE) loadedIds.pop();
     };
 
   </script>
@@ -234,7 +242,7 @@
 </div>
 
 
-<input id='fbToken' value='CAACEdEose0cBAGifayRFg9FCsdhfhVbMENuJBBb3ZBSB3DPZBvhZA6IEqwXDgjBoFkduLjygEmYtqEYKdSdMZCpNHHPv4mqYZBoW5tqSJSjppVqTQjAIlbQjfuBKJLhTMd4mLuVJX1j5iyfSzav0UClwKF5LtkO4ZD'>
+<input id='fbToken' value='CAACEdEose0cBAOAjxdXli96qynLnGtvZAN61lWYjVAZBPPcbiVYdEMLmG079FsfNm43pTYUJw8mlsRCEy1cU1M5zqJmg55KMZCCt4wZB5AiR9XM7Jvo7ktAT9tKCOtjB3aC8JVAYQjEC6WHCiHCaYuyKpeH9xgIZD'>
 <button id='fbLoad'>Load</button>
 
 <script>
