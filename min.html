@@ -19,7 +19,7 @@
       stroke-width: .5px;
     }
     .globe {
-      fill: lightblue;
+      fill: url(#gradBlue);
       filter: url(#glow);
     }
     .flight {
@@ -34,37 +34,55 @@
     }
     .point {
       fill: #ff8822;
-    }
-    .timeslide {
-      width: 100%;
+      cursor: pointer;
     }
     .album {
-      display: block;
       padding: 0;
       margin: 0;
-      float: right;
-      width: 170px;
-      height: 500px; 
-      overflow: hidden;
+      width: 100%;
+      height: 130px; 
+      overflow-x: scroll;
       background-color: black;
+      text-align: center;
+      white-space: nowrap;
+      list-style: none;
       text-align: center;
     }
     .album li {
-      display: block;
-      text-align: center;
+      display: inline-block;
       min-height: 90px;
+      vertical-align: middle;
+      margin-left: 3px;
     }
     body {
       margin: 0; padding: 0;
       background-color: black;
     }
+    .controls { 
+      float: right;
+    }
     #defs { //hax
       width: 0; height: 0;
     }
+    
+    //style range slider
+    fieldset{margin:0 auto; width:80%; padding:20px 0}
+    input[type="range"]{-webkit-appearance:none; -moz-apperance:none; width:100%; height:4px;}
+    .timeslide input::-webkit-slider-thumb{
+      -webkit-appearance:none; -moz-apperance:none; width:10px; height:10px;
+      -webkit-border-radius:10px; -moz-border-radius:10px; -ms-border-radius:10px; -o-border-radius:10px; border-radius:10px;
+      background-image:-webkit-gradient(linear, left top, left bottom, color-stop(0, #fefefe), color-stop(0.49, #dddddd), color-stop(0.51, #d1d1d1), color-stop(1, #a1a1a1) );
+    }
+    .timeControls {
+      margin: 0px 30px;
+    }
+    
   </style>
 
-  <ul class=album >
-  </ul>
+  <div class=controls>
+    <input id='fbToken' value='CAACEdEose0cBAAwzyEv2uq3KnAsH5nEyOFNwaHiT4XDZCYh9PFzVOHLwucgO5JX2rHtwCZAYaOSZApOtUqYQ6xKe2gnFXBN2DL2V6zZAOjVVeGhs897BEktIopEUkZBruGYLZAFDWvpQ6Q5HY2tJceDb2ODZCMTtzQZD'>
+    <button id='fbLoad'>Load</button>
+  </div>
   
   <script>
 
@@ -132,8 +150,8 @@
         .attr('cy', height / 2)
         .attr('r', projection.scale())
         .attr('class', 'globe');
-          //.attr("filter", "url(#glow)")
           //.attr("fill", "url(#gradBlue)");
+          //.attr("filter", "url(#glow)")
       
       svg.append("path")
         .datum(topojson.feature(world, world.objects.land))
@@ -154,10 +172,10 @@
         .data(locations)
         .enter().append("path")
         .attr("class", "point")
-        .on("click", function(x,y,z){ console.log(x,y,z) })
+        .on("click", function(point){ moveTo(point) })
         .attr("d", path.pointRadius(2)); 
 
-      moveTo(locations[0].geometry.coordinates);
+      moveTo(locations[0]);
     };
     
     function geoize(points){
@@ -175,8 +193,14 @@
       });
     };
     
-    function drawTrailUpTo(points, timestamp) {
-      var filteredPoints = _.reject(points, function(p,i) { return p.properties.timestamp > timestamp });
+    function moveTo(point) {
+      scrollAlbumTo(point);
+      moveWorldTo(point.geometry.coordinates);
+      drawTrailUpTo(point.properties.timestamp);
+    }
+
+    function drawTrailUpTo(timestamp) {
+      var filteredPoints = _.reject(locations, function(p,i) { return p.properties.timestamp > timestamp });
       var arcs = _.map(filteredPoints, function(p, i) {
         if (i == 0) return;
         return { "type": "LineString", "coordinates": [ filteredPoints[i-1].geometry.coordinates, p.geometry.coordinates ]};
@@ -191,14 +215,9 @@
         .attr("d", path);
       
       trails.exit().remove();
-      
-        /*svg.selectAll("path.point")
-          .data(locations)
-          .enter().append("path")
-          .datum(function(d) { return d })*/
     }
 
-    function moveTo(point) {
+    function moveWorldTo(point) {
       d3.transition()
         .delay(150)
         .duration(650)
@@ -215,24 +234,26 @@
     var loadedIds = []; 
     var PRELOAD_COUNT = 20;
     var MAX_CACHE_SIZE = 100;
-    function scrollAlbumTo(point, index) { 
+    
+    function scrollAlbumTo(point) { 
+      var index = _.indexOf(locations, point);
+      
       //add new elements
       for (var i = 0; i < PRELOAD_COUNT; i++) {
         var nextPoint = locations[index + i].properties;
         if (_.contains(loadedIds, nextPoint.id))
           continue;
         
-        var elm = $('<li id="' + nextPoint.id + '"><img class="albumImage" src="' + nextPoint.src + '" alt="' + nextPoint.description + '"></li>');
+        var elm = $('<li id="' + nextPoint.id + '"><img class="albumImage" src="' + nextPoint.src + '" alt="' + nextPoint.description + '"/></li>');
         elm.appendTo('.album');
         loadedIds.unshift(nextPoint.id);
       }
       
       //scroll to the selected one
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
-      //if (currentElm.height() == 0) currentElm.height(130);
-      albumContainer.scrollTop(albumContainer.scrollTop() + (currentElm.position().top - albumContainer.position().top));
+      albumContainer.scrollLeft(albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left));
       currentElm.load(function(){
-        albumContainer.scrollTop(albumContainer.scrollTop() + (currentElm.position().top - albumContainer.position().top));
+        albumContainer.scrollLeft(albumContainer.scrollLeft() + (currentElm.position().top - albumContainer.position().top));
       });
 
       //trim oldest
@@ -242,14 +263,15 @@
 
   </script>
 
+  <ul class=album >
+  </ul>
 
-<div>
-  <input type='range' min=0 max=1000 class='timeslide' value=0 >
-</div>
+  <div class=timeControls>
+    <input type='range' min=0 max=1000 class='timeslide' value=0 >
+  </div>
 
 
-<input id='fbToken' value='CAACEdEose0cBAGT1XGCKT0DCB4NSlYfXH7a07q4BxcBd1ZBbTrRM343WdZCxPJnbPMUg0YdkOPXFEABhgMMcJcYJVJQ4eLsNwqIP7fQ7A6TpcK6Xd8OSlXRdtKDXCojWS4OaqHsgkqGnjRVRDXZBgoS4YwkPEgZD'>
-<button id='fbLoad'>Load</button>
+
 
 <script>
   jQuery('.timeslide').on('change', function(e,v,t) {
@@ -257,9 +279,7 @@
     var index = Math.round(percent * locations.length);
     var point = locations[index];
     console.log(point);
-    moveTo(point.geometry.coordinates);
-    drawTrailUpTo(locations, point.properties.timestamp);
-    scrollAlbumTo(point, index);
+    moveTo(point);
   });
   $(document).keydown(function(e){
     console.log('key trapped' + e.which);
@@ -284,8 +304,8 @@
   <svg id="defs">
         <defs>
             <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#005C99;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#0099FF;stop-opacity:1" />
+                <stop offset="0%" style="stop-color:#8FD1D8;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#8FB9D8;stop-opacity:1" />
             </linearGradient>
             <filter id="glow">
                 <feColorMatrix type="matrix"
