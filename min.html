@@ -9,14 +9,6 @@
 </head>
 <body>
   <style>
-
-    .graticule {
-      fill: none;
-      stroke: #777;
-      stroke-opacity: .5;
-      stroke-width: .5px;
-    }
-
     .land {
       fill: grey;
     }
@@ -25,6 +17,9 @@
       fill: none;
       stroke: #fff;
       stroke-width: .5px;
+    }
+    .globe {
+      fill: none;
     }
     .flight {
       stroke: #ee22ff;
@@ -43,21 +38,28 @@
       width: 100%;
     }
     .album {
-      padding-top: 4px;
+      display: block;
+      padding: 0;
+      margin: 0;
       float: right;
-      width: 150px;
+      width: 170px;
       height: 500px; 
       overflow: hidden;
       background-color: black;
       text-align: center;
+    }
+    .album li {
+      display: block;
+      text-align: center;
+      min-height: 90px;
     }
     body {
       margin: 0;
     }
   </style>
   
-  <div class=album >
-  </div>
+  <ul class=album >
+  </ul>
   <script>
 
     var width = 960,
@@ -118,12 +120,15 @@
     ****/
     var locations;
     d3.json("/world-110m.json", function(error, world) {
-      /*svg.selectAll("path")
-      .data(topojson.feature(world, world.objects.countries)
-      .geometries)
-      .enter()
-      .append("path")
-      .attr("d", path) */
+      //Create the base globe
+      svg.append("circle")
+        .attr('cx', width / 2)
+        .attr('cy', height / 2)
+        .attr('r', projection.scale())
+        .attr('class', 'globe');
+          //.attr("filter", "url(#glow)")
+          //.attr("fill", "url(#gradBlue)");
+      
       svg.append("path")
         .datum(topojson.feature(world, world.objects.land))
         .attr("class", "land")
@@ -134,10 +139,6 @@
         .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
         .attr("class", "boundary")
         .attr("d", path);
-
-      //d3.json("davefb.json", function(error, fbfqldata) {
-        //loadLocationPoints(svg, fbfqldata);
-      //});
     });
     
     function loadLocationPoints(points) { 
@@ -215,9 +216,8 @@
         if (_.contains(loadedIds, nextPoint.id))
           continue;
         
-        var img = $('<img class="albumImage" id="' + nextPoint.id + '" alt="' + nextPoint.id + '">')
-        img.attr('src', nextPoint.src);
-        img.appendTo('.album');
+        var elm = $('<li id="' + nextPoint.id + '"><img class="albumImage" src="' + nextPoint.src + '" alt="' + nextPoint.description + '"></li>');
+        elm.appendTo('.album');
         loadedIds.unshift(nextPoint.id);
       }
       
@@ -238,22 +238,35 @@
 
 
 <div>
-  <input type='range' min=0 max=10000 class='timeslide' value=0 >
+  <input type='range' min=0 max=1000 class='timeslide' value=0 >
 </div>
 
 
-<input id='fbToken' value='CAACEdEose0cBAOAjxdXli96qynLnGtvZAN61lWYjVAZBPPcbiVYdEMLmG079FsfNm43pTYUJw8mlsRCEy1cU1M5zqJmg55KMZCCt4wZB5AiR9XM7Jvo7ktAT9tKCOtjB3aC8JVAYQjEC6WHCiHCaYuyKpeH9xgIZD'>
+<input id='fbToken' value='CAACEdEose0cBAGT1XGCKT0DCB4NSlYfXH7a07q4BxcBd1ZBbTrRM343WdZCxPJnbPMUg0YdkOPXFEABhgMMcJcYJVJQ4eLsNwqIP7fQ7A6TpcK6Xd8OSlXRdtKDXCojWS4OaqHsgkqGnjRVRDXZBgoS4YwkPEgZD'>
 <button id='fbLoad'>Load</button>
 
 <script>
   jQuery('.timeslide').on('change', function(e,v,t) {
-    var percent = $(this).val() / 10000.0;
+    var percent = $(this).val() / 1000.0;
     var index = Math.round(percent * locations.length);
     var point = locations[index];
     console.log(point);
     moveTo(point.geometry.coordinates);
     drawTrailUpTo(locations, point.properties.timestamp);
     scrollAlbumTo(point, index);
+  });
+  $(document).keydown(function(e){
+    console.log('key trapped' + e.which);
+    switch(e.which) {
+      case 37: // left
+        $('.timeslide').val(parseInt($('.timeslide').val()) - 1).trigger('change');
+        break;
+      case 39: // right
+        $('.timeslide').val(parseInt($('.timeslide').val()) + 1).trigger('change');
+        break;
+      default: return; // exit this handler for other keys
+    }
+    e.preventDefault();
   });
   $('#fbLoad').click(function() {
     var token = $('#fbToken').val()
