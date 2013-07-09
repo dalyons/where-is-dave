@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<head>
+  <script src="/d3.v3.js"></script>
+  <script src="/topojson.v1.js"></script>
+  <script src="/underscore-min.js"></script>
+  <script src="/fb_munger.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+</head>
 <body>
   <style>
 
@@ -36,11 +43,6 @@
       width: 100%;
     }
   </style>
-  <script src="/d3.v3.js"></script>
-  <script src="/topojson.v1.js"></script>
-  <script src="/underscore-min.js"></script>
-  <!--<script src="/dave.js"</script>-->
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
   <script>
 
     var width = 960,
@@ -189,12 +191,13 @@
 
   </script>
 
+
 <div>
   <input type='range' min=0 max=1000 class='timeslide' value=0 >
 </div>
 
 <script>
-  $('.timeslide').on('change', function(e,v,t) {
+  jQuery('.timeslide').on('change', function(e,v,t) {
     var percent = $(this).val() / 1000.0;
     var fbp = fbgeo[Math.round(percent * fbgeo.length)];
     console.log(fbp.berlarky);
