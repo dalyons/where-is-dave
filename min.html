@@ -11,6 +11,8 @@
   <style>
     .land {
       fill: grey;
+      fill: #599661;
+      fill: #4F8256;
     }
 
     .boundary {
@@ -33,7 +35,7 @@
       fill: none;
     }
     .point {
-      fill: #ff8822;
+      fill: #E6E640;
       cursor: pointer;
     }
     .album {
@@ -94,7 +96,7 @@
   </style>
 
   <div class=controls>
-    <input id='fbToken' value='CAACEdEose0cBAPYkeGvNpqeoMSZAl5bzDM5Gyi8OMbS5ruKTnhzplIgIgMBNGxOjUfaIZCy1d8rM1I2XZBTpXZBfbrWHcE5ZA00StdEwgZAAgKjIPsQpLlxyzxlulONgyaFYrZAb9531mPSSiSkjwcAjMZAZCPPpG3nUZD'>
+    <input id='fbToken' value='CAACEdEose0cBAA4a2lr5PE8ZApPhbHQ5QZAPxFfWalOJGgwIgcSGKltJVG8j8gZAL7hzX8YKlamYqiaePv50TPTruNfSGKDko8fZChWUjndRmPEi5OUWJJ1z9jtAUrw7PZB06K5cjPKkdlwpO3t9dfblMvKGeec0ZD'>
     <button id='fbLoad'>Load</button>
   </div>
   
@@ -266,6 +268,7 @@
     var loadedIds = []; 
     var PRELOAD_COUNT = 20;
     var MAX_CACHE_SIZE = 100;
+    var cached = {};
     
     function scrollAlbumTo(point) { 
       var index = _.indexOf(locations, point);
@@ -343,9 +346,9 @@
 
   <svg id="defs">
         <defs>
-            <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#8FE1D8;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#8FB9D8;stop-opacity:1" />
+            <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#88a6fe;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#8Ff9D8;stop-opacity:1" />
             </linearGradient>
             <filter id="glow">
                 <feColorMatrix type="matrix"
