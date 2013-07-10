@@ -76,9 +76,12 @@
       bottom: 200px;
       right: 0px;
       width: 400px;
+      //box-shadow: inset 0px 0px 20px 10px rgba(0,0,0,0.99);
     }
-    .featured img {
+    .featured a img {
       width: 380px;
+      //z-index: -2;
+      //position: relative;
     }
     #defs { //hax
       width: 0; height: 0;
@@ -99,7 +102,7 @@
   </style>
 
   <div class=controls>
-    <input id='fbToken' value='CAACEdEose0cBALCwmaBvAetvkSI0srXHkxXNjfaIKi4JOZANBMZAV0ZAJ8WXZBXo1fuhpk3XYZA5080ILAvOqzl3zpROiGdZA0YPpXbpbZAy10HHTNtr5U7mLw9rKrPHDtxlZA0iXShHXT04KfVuVzwx9Snrh7vSR1kZD'>
+    <input id='fbToken' value='CAACEdEose0cBALzkOZCoP7OVu6cMTjBDZBsgFyCBL5eDXpJU8tEwJbwZAxdE5Gzd7UCkpiTomYTKyiJxjTjVzW8C5OePPxb8ezhPZBQFVKH6EReDqDQR5qQVrEqS8gwgjZBZAGT5GQkKMWb2mrEZBuuh6KZArIsqB6kZD'>
     <button id='fbLoad'>Load</button>
   </div>
   
@@ -109,7 +112,7 @@
   <ul class=album>
   </ul>
   <div class=featured>
-    <img />
+    <a><img /></a>
   </div>
 
   <div class=timeControls>
@@ -235,7 +238,8 @@
     }
 
     function setFeaturedTo(point) {
-      $('.featured img').attr('src', point.properties.src)
+      $('.featured a img').attr('src', point.properties.src);
+      $('.featured a').attr('href', 'http://facebook.com/' + point.properties.id);
     }
     
     function syncTimeslider(point) {
