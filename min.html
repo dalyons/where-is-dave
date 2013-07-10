@@ -280,14 +280,14 @@
       var index = _.indexOf(locations, point);
       
       var newIds = [];
-      for (var i = 0; i < PRELOAD_COUNT; i++) {
-        var nextPoint = locations[index + i].properties, id = nextPoint.id.toString();
+      _.each(locations.slice(index, index + PRELOAD_COUNT), function(location) {
+        var id = location.id.toString();
         if (!_.contains(loadedIds, id)) {
           newIds.push(id);
           loadedIds.push(id);
-          cacheMap[id] = nextPoint;
+          cacheMap[id] = location.properties;
         }
-      }
+      });
       
       //re-sort cache list
       loadedIds = _.sortBy(loadedIds, function(id) { return cacheMap[id].timestamp });
@@ -308,31 +308,10 @@
           elm.insertAfter('#' + loadedIds[insertPos - 1]);
       });
 
-      //add new elements
-      /*for (var i = 0; i < PRELOAD_COUNT; i++) {
-        var nextPoint = locations[index + i].properties;
-        if (_.contains(loadedIds, nextPoint.id))
-          continue;
-        
-        var elm = $(
-          '<li id="' + nextPoint.id + '">' +
-          '<img class="albumImage" src="' + nextPoint.thumbnail + '" alt="' + nextPoint.description + '" data-id="' + nextPoint.id + '"/>' +
-          '</li>'
-        );
-
-        elm.appendTo('.album');
-        loadedIds.unshift(nextPoint.id);
-      }*/
-      
       //scroll to the selected one
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
-      //setTimeout(function(){
       console.log(albumContainer.scrollLeft(), currentElm.position().left);
       albumContainer.scrollLeft(albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left) - 60);
-      //}, 1000);
-      //currentElm.load(function(){
-        //albumContainer.scrollLeft(albumContainer.scrollLeft() + (currentElm.position().top - albumContainer.position().top));
-      //});
 
       //trim oldest
       //_.each(_.rest(loadedIds, MAX_CACHE_SIZE), function(id) {console.log('clearing elm' + id); $('#' + id).remove() });
