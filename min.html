@@ -51,7 +51,7 @@
       white-space: nowrap;
       list-style: none;
       //TODO: looks like shit, maybe try a css transition?
-      -webkit-mask-image: -webkit-linear-gradient(right, rgba(0,0,0,0), rgba(0,0,0,1) 5%, rgba(0,0,0,1) 90%, rgba(0,0,0,0) 100%)
+      -webkit-mask-image: -webkit-linear-gradient(right, rgba(0,0,0,0), rgba(0,0,0,1) 3%, rgba(0,0,0,1) 97%, rgba(0,0,0,0) 100%)
     }
     .album li {
       display: inline-block;
@@ -230,10 +230,18 @@
       setFeaturedTo(point);
       moveWorldTo(point.geometry.coordinates);
       drawTrailUpTo(point.properties.timestamp);
+      syncTimeslider(point);
     }
 
     function setFeaturedTo(point) {
       $('.featured img').attr('src', point.properties.src)
+    }
+    
+    function syncTimeslider(point) {
+      $('.timeslide')
+        .attr('max', locations.length - 1)
+        .attr('min', 0)
+        .val(_.indexOf(locations, point));
     }
 
     function drawTrailUpTo(timestamp) {
@@ -312,26 +320,24 @@
 
       //scroll to the selected one
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
-      console.log(albumContainer.scrollLeft(), currentElm.position().left);
-      albumContainer.scrollLeft(albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left) - 60);
-
-      //trim oldest
-      //_.each(_.rest(loadedIds, MAX_CACHE_SIZE), function(id) {console.log('clearing elm' + id); $('#' + id).remove() });
-      //while (loadedIds.length > MAX_CACHE_SIZE) loadedIds.pop();
+      var scrollY = albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left) - 60;
+      albumContainer.animate({scrollLeft: scrollY}, 300);
+      //albumContainer.css('transform', 'translateX(500px)');
+      //albumContainer.css('transition', 'scrollLeft 1.0s linear;');
+      //albumContainer.scrollLeft(scrollY);
       
+
     };
 
   </script>
 
 
-
-
-
 <script>
   jQuery('.timeslide').on('change', function(e,v,t) {
-    var percent = $(this).val() / 1000.0;
-    var index = Math.round(percent * locations.length);
-    var point = locations[index];
+    //var percent = $(this).val() / 1000.0;
+    //var index = Math.round(percent * locations.length);
+    var pointIndex = parseInt($(this).val());
+    var point = locations[pointIndex];
     console.log(point);
     moveTo(point);
   });
