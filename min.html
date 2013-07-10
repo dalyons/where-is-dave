@@ -252,7 +252,7 @@
     function drawTrailUpTo(point) {
       //var filteredPoints = _.reject(locations, function(p,i) { return p.properties.timestamp > timestamp });
       var arcs = [];
-      for (var i = 1; i < _.indexOf(locations, point); i++) {
+      for (var i = 1; i <= _.indexOf(locations, point); i++) {
         var l = locations[i];
         arcs.push({ "type": "LineString", "coordinates": [ locations[i-1].geometry.coordinates, l.geometry.coordinates ]});
       };
