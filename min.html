@@ -99,7 +99,7 @@
   </style>
 
   <div class=controls>
-    <input id='fbToken' value='CAACEdEose0cBAHu2ZCNxkIZBuD7Q4NhcHJgzwyaKNJqPfZAXHBAg3iii7j4NaZBCyIMkOE8HrVXbfC7r18ZAluSKjN05mqzMf49OXG7ggS10Ae8cBVU4aeRfh2oGgqjnlVgky6YmhncpOmOsRcY7vrXDuBIuSkKYZD'>
+    <input id='fbToken' value='CAACEdEose0cBALCwmaBvAetvkSI0srXHkxXNjfaIKi4JOZANBMZAV0ZAJ8WXZBXo1fuhpk3XYZA5080ILAvOqzl3zpROiGdZA0YPpXbpbZAy10HHTNtr5U7mLw9rKrPHDtxlZA0iXShHXT04KfVuVzwx9Snrh7vSR1kZD'>
     <button id='fbLoad'>Load</button>
   </div>
   
@@ -226,10 +226,11 @@
     };
     
     function moveTo(point) {
+      console.log('moving to', point);
       scrollAlbumTo(point);
       setFeaturedTo(point);
       moveWorldTo(point.geometry.coordinates);
-      drawTrailUpTo(point.properties.timestamp);
+      drawTrailUpTo(point);
       syncTimeslider(point);
     }
 
@@ -244,13 +245,14 @@
         .val(_.indexOf(locations, point));
     }
 
-    function drawTrailUpTo(timestamp) {
-      var filteredPoints = _.reject(locations, function(p,i) { return p.properties.timestamp > timestamp });
-      var arcs = _.map(filteredPoints, function(p, i) {
-        if (i == 0) return;
-        return { "type": "LineString", "coordinates": [ filteredPoints[i-1].geometry.coordinates, p.geometry.coordinates ]};
-      });
-      arcs.shift();
+    function drawTrailUpTo(point) {
+      //var filteredPoints = _.reject(locations, function(p,i) { return p.properties.timestamp > timestamp });
+      var arcs = [];
+      for (var i = 1; i < _.indexOf(locations, point); i++) {
+        var l = locations[i];
+        arcs.push({ "type": "LineString", "coordinates": [ locations[i-1].geometry.coordinates, l.geometry.coordinates ]});
+      };
+      
       var trails = 
         svg.selectAll("path.trail")
         .data(arcs);
@@ -321,7 +323,7 @@
       //scroll to the selected one
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
       var scrollY = albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left) - 60;
-      albumContainer.animate({scrollLeft: scrollY}, 300);
+      albumContainer.animate({scrollLeft: scrollY}, 100);
       //albumContainer.css('transform', 'translateX(500px)');
       //albumContainer.css('transition', 'scrollLeft 1.0s linear;');
       //albumContainer.scrollLeft(scrollY);
