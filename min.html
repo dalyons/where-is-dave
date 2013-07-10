@@ -35,7 +35,7 @@
       fill: none;
     }
     .point {
-      fill: #E6E640;
+      fill: #ee8822;
       cursor: pointer;
     }
     .album {
@@ -54,6 +54,7 @@
     .album li {
       display: inline-block;
       min-height: 90px;
+      min-width: 90px;
       vertical-align: middle;
       margin-left: 3px;
       cursor: pointer;
@@ -265,16 +266,50 @@
       .transition();
     }
     
+
+
+    //for each elem, determine if its in the set.
+    //if not, insert it after the first elem in the the set that its greater than
+
     var loadedIds = []; 
+    var cacheMap = {};
     var PRELOAD_COUNT = 20;
     var MAX_CACHE_SIZE = 100;
-    var cached = {};
     
     function scrollAlbumTo(point) { 
       var index = _.indexOf(locations, point);
       
-      //add new elements
+      var newIds = [];
       for (var i = 0; i < PRELOAD_COUNT; i++) {
+        var nextPoint = locations[index + i].properties, id = nextPoint.id.toString();
+        if (!_.contains(loadedIds, id)) {
+          newIds.push(id);
+          loadedIds.push(id);
+          cacheMap[id] = nextPoint;
+        }
+      }
+      
+      //re-sort cache list
+      loadedIds = _.sortBy(loadedIds, function(id) { return cacheMap[id].timestamp });
+
+      //for each new id
+      _.each(newIds, function(id) {
+        var nextPoint = cacheMap[id];
+        var elm = $(
+          '<li id="' + nextPoint.id + '">' +
+          '<img class="albumImage" src="' + nextPoint.thumbnail + '" alt="' + nextPoint.description + '" data-id="' + nextPoint.id + '"/>' +
+          '</li>'
+        );
+        
+        var insertPos = _.indexOf(loadedIds, id);
+        if (insertPos < 1)
+          elm.prependTo('.album')
+        else 
+          elm.insertAfter('#' + loadedIds[insertPos - 1]);
+      });
+
+      //add new elements
+      /*for (var i = 0; i < PRELOAD_COUNT; i++) {
         var nextPoint = locations[index + i].properties;
         if (_.contains(loadedIds, nextPoint.id))
           continue;
@@ -284,20 +319,24 @@
           '<img class="albumImage" src="' + nextPoint.thumbnail + '" alt="' + nextPoint.description + '" data-id="' + nextPoint.id + '"/>' +
           '</li>'
         );
+
         elm.appendTo('.album');
         loadedIds.unshift(nextPoint.id);
-      }
+      }*/
       
       //scroll to the selected one
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
-      albumContainer.scrollLeft(albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left));
-      currentElm.load(function(){
-        albumContainer.scrollLeft(albumContainer.scrollLeft() + (currentElm.position().top - albumContainer.position().top));
-      });
+      //setTimeout(function(){
+      console.log(albumContainer.scrollLeft(), currentElm.position().left);
+      albumContainer.scrollLeft(albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left) - 60);
+      //}, 1000);
+      //currentElm.load(function(){
+        //albumContainer.scrollLeft(albumContainer.scrollLeft() + (currentElm.position().top - albumContainer.position().top));
+      //});
 
       //trim oldest
-      _.each(_.rest(loadedIds, MAX_CACHE_SIZE), function(id) {console.log('clearing elm' + id); $('#' + id).remove() });
-      while (loadedIds.length > MAX_CACHE_SIZE) loadedIds.pop();
+      //_.each(_.rest(loadedIds, MAX_CACHE_SIZE), function(id) {console.log('clearing elm' + id); $('#' + id).remove() });
+      //while (loadedIds.length > MAX_CACHE_SIZE) loadedIds.pop();
       
     };
 
