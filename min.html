@@ -170,7 +170,7 @@
     ** Load data 
     ****/
     var locations;
-    d3.json("/world-110m.json", function(error, world) {
+    d3.json("world-110m.json", function(error, world) {
       //Create the base globe
       svg.append("circle")
         .attr('cx', width / 2)
