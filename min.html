@@ -169,7 +169,6 @@
     /*** 
     ** Load data 
     ****/
-    var locations;
     d3.json("/world-110m.json", function(error, world) {
       //Create the base globe
       svg.append("circle")
@@ -192,6 +191,7 @@
         .attr("d", path);
     });
     
+    var locations;
     function loadLocationPoints(points) { 
       locations = geoize(points);
       console.log('loaded ' + locations.length + ' locations');
@@ -209,7 +209,7 @@
         .on("click", function(point){ moveTo(point) })
         .attr("d", path.pointRadius(2)); 
 
-      moveTo(locations[0]);
+      moveTo(uniqueLocations[0]);
     };
     
     function geoize(points){
@@ -252,9 +252,11 @@
       //var filteredPoints = _.reject(locations, function(p,i) { return p.properties.timestamp > timestamp });
       var arcs = [];
       for (var i = 1; i <= _.indexOf(locations, point); i++) {
-        var l = locations[i];
-        arcs.push({ "type": "LineString", "coordinates": [ locations[i-1].geometry.coordinates, l.geometry.coordinates ]});
+        var l = locations[i], l1 = locations[i-1];
+        if (!isCloseEnough(l.geometry, l1.geometry))
+          arcs.push({ "type": "LineString", "coordinates": [ l1.geometry.coordinates, l.geometry.coordinates ]});
       };
+      console.log('trail length ' + arcs.length);
       
       var trails = 
         svg.selectAll("path.trail")
@@ -327,22 +329,23 @@
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
       var scrollY = albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left) - 60;
       albumContainer.animate({scrollLeft: scrollY}, 100);
-      //albumContainer.css('transform', 'translateX(500px)');
-      //albumContainer.css('transition', 'scrollLeft 1.0s linear;');
-      //albumContainer.scrollLeft(scrollY);
-      
 
     };
     
+    //return true if two geometries specifiy basically the same location
     function isCloseEnough(geoA, geoB) {
-     var rounded = _.map([geoA,geoB], function(g){ return _.map(g.coordinates,function(c){ return Math.round(parseFloat(c)*10000) })});
-     return rounded[0][0] == rounded[1][0] && rounded[0][1] == rounded[1][1];
+      var rounded = _.map([geoA,geoB], function(g){ return _.map(g.coordinates,function(c){ return Math.round(parseFloat(c)*10000) })});
+      return rounded[0][0] == rounded[1][0] && rounded[0][1] == rounded[1][1];
     }
 
   </script>
 
 
 <script>
+  /*
+   * UI bindings/interaction dross
+   */
+  
   jQuery('.timeslide').on('change', function(e,v,t) {
     //var percent = $(this).val() / 1000.0;
     //var index = Math.round(percent * locations.length);
@@ -351,8 +354,8 @@
     console.log(point);
     moveTo(point);
   });
+  
   $(document).keydown(function(e){
-    console.log('key trapped' + e.which);
     switch(e.which) {
       case 37: // left
         $('.timeslide').val(parseInt($('.timeslide').val()) - 1).trigger('change');
