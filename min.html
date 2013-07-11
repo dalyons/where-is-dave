@@ -10,9 +10,8 @@
 <body>
   <style>
     .land {
-      fill: grey;
-      fill: #599661;
       fill: #4F8256;
+      fill: url(#gradGreenRad);
     }
 
     .boundary {
@@ -21,7 +20,7 @@
       stroke-width: .5px;
     }
     .globe {
-      fill: url(#gradBlue);
+      fill: url(#gradBlueRad);
       filter: url(#glow);
     }
     .flight {
@@ -424,9 +423,23 @@
   <svg id="defs">
         <defs>
             <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#88a6fe;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#8Ff9D8;stop-opacity:1" />
+                <stop offset="0%" style="stop-color:rgb(160, 193, 247);stop-opacity:1" />
+                <stop offset="100%" style="stop-color:rgb(184,211,250);stop-opacity:0.8" />
             </linearGradient>
+            <radialGradient id="gradBlueRad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                <stop offset="0%" style="stop-color:rgb(44,70,120);stop-opacity:1" />
+                <stop offset="50%" style="stop-color:rgb(64,90,140);stop-opacity:1" />
+                <stop offset="80%" style="stop-color:rgb(80,140,180);stop-opacity:1" />
+                <stop offset="94%" style="stop-color:rgb(140,160,220);stop-opacity:1" />
+                <stop offset="100%" style="stop-color:rgb(184,211,250);stop-opacity:1" />
+            </radialGradient>
+            <radialGradient id="gradGreenRad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                <stop offset="0%" style="stop-color:#136600;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#157000;stop-opacity:1" />
+                <stop offset="80%" style="stop-color:#27a20a;stop-opacity:1" />
+                <stop offset="94%" style="stop-color:#2fa613;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#90ff75;stop-opacity:1" />
+            </radialGradient>
             <filter id="glow">
                 <feColorMatrix type="matrix"
                     values=
