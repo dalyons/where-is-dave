@@ -102,7 +102,7 @@
   </style>
 
   <div class=controls>
-    <input id='fbToken' value='CAACEdEose0cBACE4ofGF1gPUiCcidRLGxXoBL4mZAr0kh46UPKcQ2aq9ZCbDZCv0DA3r1voCsouMy58gCXMFquij8ATj075d1jdsfsOlZAzMy6KosaiWqnxFZBR4uj4wKU1heZCmQ0yy9fqWK5BZBk65ZCrfxkLteGUZD'>
+    <input id='fbToken'>
     <button id='fbLoad'>Load</button>
   </div>
   
@@ -194,15 +194,16 @@
     
     function loadLocationPoints(points) { 
       locations = geoize(points);
+      console.log('loaded ' + locations.length + ' locations');
       
       //only draw one globe point per geograhical coord, so we dont melt the browser
-      //var uniqueLocations = _.map(locations, function(location, i) {
-        //return (i == 0 || !_.isEqual(location.geometry.coordinates,locations[i - 1].geometry.coordinates) );
-      //});
-      //console.log('uniq', uniqueLocations.length);
+      var uniqueLocations = _.filter(locations, function(location, i) {
+        return (i == 0 || !isCloseEnough(location.geometry,locations[i - 1].geometry) );
+      });
+      console.log('found ' + uniqueLocations.length + ' unique locations');
       
       svg.selectAll("path.point")
-        .data(locations)
+        .data(uniqueLocations)
         .enter().append("path")
         .attr("class", "point")
         .on("click", function(point){ moveTo(point) })
@@ -332,6 +333,11 @@
       
 
     };
+    
+    function isCloseEnough(geoA, geoB) {
+     var rounded = _.map([geoA,geoB], function(g){ return _.map(g.coordinates,function(c){ return Math.round(parseFloat(c)*10000) })});
+     return rounded[0][0] == rounded[1][0] && rounded[0][1] == rounded[1][1];
+    }
 
   </script>
 
@@ -365,11 +371,17 @@
       var point = _.find(locations, function(p) { return p.id.toString() == id });
       moveTo(point);
     });
-  });
 
-  $('#fbLoad').click(function() {
-    var token = $('#fbToken').val()
-    fetchFB(token, loadLocationPoints);
+    $('#fbLoad').click(function() {
+      var token = $('#fbToken').val()
+      fetchFB(token, loadLocationPoints);
+    });
+    
+    //load fb token from url
+    function getURLParameter(name) {
+      return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+    }
+    $('#fbToken').val(getURLParameter('fbToken'));
   });
 </script>
 
