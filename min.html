@@ -102,8 +102,9 @@
   </style>
 
   <div class=controls>
-    <input id='fbToken'>
-    <button id='fbLoad'>Load</button>
+    <input id='fbToken' style='display:none;'>
+    <button id='fbLoad' style='display:none;'>Load</button>
+    <button id='play'>Play</button>
   </div>
   
   
@@ -232,7 +233,7 @@
       console.log('moving to', point);
       scrollAlbumTo(point);
       setFeaturedTo(point);
-      moveWorldTo(point.geometry.coordinates);
+      moveWorldTo(point);
       drawTrailUpTo(point);
       syncTimeslider(point);
     }
@@ -270,18 +271,24 @@
       trails.exit().remove();
     }
 
+    var lastPoint; 
     function moveWorldTo(point) {
-      d3.transition()
-        .delay(150)
-        .duration(650)
-        .tween("rotate", function() {
-          var rotate = d3.interpolate(projection.rotate(), [-point[0], -point[1]]);
-          return function(t) {
-            projection.rotate(rotate(t));
-            svg.selectAll("path").attr("d", path); //redraw
-          };
-        })
-      .transition();
+      if (!lastPoint || !isCloseEnough(lastPoint.geometry, point.geometry)) {
+        console.log('moving world', point);
+        var coords = point.geometry.coordinates;
+        d3.transition()
+          .delay(150)
+          .duration(650)
+          .tween("rotate", function() {
+            var rotate = d3.interpolate(projection.rotate(), [-coords[0], -coords[1]]);
+            return function(t) {
+              projection.rotate(rotate(t));
+              svg.selectAll("path").attr("d", path); //redraw
+            };
+          })
+        .transition();
+      }
+      lastPoint = point;
     }
     
 
@@ -319,7 +326,7 @@
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
       var scrollY = albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left) - 60;
       var animationSpeed = Math.min(400, Math.floor(400 * Math.abs(scrollY - albumContainer.scrollLeft()) / (albumContainer.width() * 1.0)));
-      albumContainer.stop();
+      albumContainer.stop(true, true);
       albumContainer.animate({scrollLeft: scrollY}, animationSpeed);
 
     };
@@ -335,35 +342,34 @@
 
 <script>
   /*
-   * UI bindings/interaction dross
+   * init FB
    */
-  
-  jQuery('.timeslide').on('change', function(e,v,t) {
-    //var percent = $(this).val() / 1000.0;
-    //var index = Math.round(percent * locations.length);
-    var pointIndex = parseInt($(this).val());
-    var point = locations[pointIndex];
-    console.log(point);
-    moveTo(point);
-  });
-  
-  $(document).keydown(function(e){
-    switch(e.which) {
-      case 37: // left
-        $('.timeslide').val(parseInt($('.timeslide').val()) - 1).trigger('change');
-        break;
-      case 39: // right
-        $('.timeslide').val(parseInt($('.timeslide').val()) + 1).trigger('change');
-        break;
-      default: return; // exit this handler for other keys
+  $(function(){
+    //load fb token from url
+    function getURLParameter(name) {
+      return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
     }
-    e.preventDefault();
+    var token = getURLParameter('fbToken');
+    $('#fbToken').val(token);
+    fetchFB(token, loadLocationPoints);
   });
-  
+
+  /* 
+   * UI controls
+   */
   $(function(){
     $('.album').on('click', 'img', function(){ 
       var id = $(this).data('id');
       var point = _.find(locations, function(p) { return p.id.toString() == id });
+      moveTo(point);
+    });
+    
+    $('.timeslide').on('change', function(e,v,t) {
+      //var percent = $(this).val() / 1000.0;
+      //var index = Math.round(percent * locations.length);
+      var pointIndex = parseInt($(this).val());
+      var point = locations[pointIndex];
+      console.log(point);
       moveTo(point);
     });
 
@@ -371,12 +377,46 @@
       var token = $('#fbToken').val()
       fetchFB(token, loadLocationPoints);
     });
-    
-    //load fb token from url
-    function getURLParameter(name) {
-      return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+
+    var playing, tourIndex = 0;
+    function pauseTour(btn) {
+      $(btn).html('play');
+      clearInterval(playing);
+      playing = null;
     }
-    $('#fbToken').val(getURLParameter('fbToken'));
+    
+    function playTour(btn) {
+      $(btn).html('pause')
+      playing = setInterval(function(){
+        tourIndex = tourIndex + 1;
+        if (tourIndex < locations.length)
+          moveTo(locations[tourIndex]);
+        else {
+          pauseTour();
+          tourIndex = 0;
+        }
+      },80);
+    }
+
+    $('#play').click(function() {
+      playing ? pauseTour(this) : playTour(this);
+    });
+
+    $(document).keydown(function(e){
+      switch(e.which) {
+        case 37: // left
+          moveTo(locations[parseInt($('.timeslide').val()) - 1])
+          //$('.timeslide').val(parseInt($('.timeslide').val()) - 1).trigger('change');
+          break;
+        case 39: // right
+          moveTo(locations[parseInt($('.timeslide').val()) + 1])
+          //$('.timeslide').val(parseInt($('.timeslide').val()) + 1).trigger('change');
+          break;
+        default: return; // exit this handler for other keys
+      }
+      e.preventDefault();
+    });
+    
   });
 </script>
 
