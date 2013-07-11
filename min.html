@@ -252,6 +252,7 @@
     function setFeaturedTo(point) {
       $('.featured a img').attr('src', point.properties.src);
       $('.featured a').attr('href', 'http://facebook.com/' + point.properties.id);
+      $('.featured a').attr('target', '_blank');
     }
     
     function syncTimeslider(point) {
