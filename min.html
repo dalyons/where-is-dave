@@ -102,7 +102,7 @@
   </style>
 
   <div class=controls>
-    <input id='fbToken' value='CAACEdEose0cBALzkOZCoP7OVu6cMTjBDZBsgFyCBL5eDXpJU8tEwJbwZAxdE5Gzd7UCkpiTomYTKyiJxjTjVzW8C5OePPxb8ezhPZBQFVKH6EReDqDQR5qQVrEqS8gwgjZBZAGT5GQkKMWb2mrEZBuuh6KZArIsqB6kZD'>
+    <input id='fbToken' value='CAACEdEose0cBACE4ofGF1gPUiCcidRLGxXoBL4mZAr0kh46UPKcQ2aq9ZCbDZCv0DA3r1voCsouMy58gCXMFquij8ATj075d1jdsfsOlZAzMy6KosaiWqnxFZBR4uj4wKU1heZCmQ0yy9fqWK5BZBk65ZCrfxkLteGUZD'>
     <button id='fbLoad'>Load</button>
   </div>
   
@@ -133,14 +133,6 @@
     .projection(projection);
 
     var circle = d3.geo.circle();
-
-    var λ = d3.scale.linear()
-    .domain([0, width])
-    .range([-180, 180]);
-
-    var φ = d3.scale.linear()
-    .domain([0, height])
-    .range([90, -90]);
 
     var svg = d3.select(".main").append("svg")
     .attr("width", width)
@@ -202,7 +194,13 @@
     
     function loadLocationPoints(points) { 
       locations = geoize(points);
-      console.log(locations);
+      
+      //only draw one globe point per geograhical coord, so we dont melt the browser
+      //var uniqueLocations = _.map(locations, function(location, i) {
+        //return (i == 0 || !_.isEqual(location.geometry.coordinates,locations[i - 1].geometry.coordinates) );
+      //});
+      //console.log('uniq', uniqueLocations.length);
+      
       svg.selectAll("path.point")
         .data(locations)
         .enter().append("path")
@@ -317,7 +315,7 @@
           '</li>'
         );
         
-        var insertPos = _.indexOf(loadedIds, id);
+        var insertPos = _.indexOf(loadedIds, id, true);
         if (insertPos < 1)
           elm.prependTo('.album')
         else 
