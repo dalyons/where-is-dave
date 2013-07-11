@@ -4,11 +4,18 @@
   <script src="d3.v3.js"></script>
   <script src="topojson.v1.js"></script>
   <script src="underscore-min.js"></script>
-  <script src="fb_munger.js"></script>
+  <script src="html5slider.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  
+  <script src="fb_munger.js"></script>
 </head>
 <body>
   <style>
+    html, body, div, form, fieldset, legend, label {
+      margin: 0;
+      padding: 0; 
+    }
+
     .land {
       fill: #4F8256;
       fill: url(#gradGreenRad);
@@ -68,7 +75,12 @@
       background-color: black;
     }
     .controls { 
-      float: right;
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 50;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
     }
     .featured {
       position: absolute;
