@@ -143,12 +143,10 @@
     ** Handle drag/mouse move events 
     */
     var m0, o0;
-
     svg.on("mousemove", function() {
       if (m0) {
-        var m1 = d3.mouse(this), //[d3.event.pageX, d3.event.pageY],
-        o1 = [o0[0] + (m1[0] - m0[0]) / 4, o0[1] + (m0[1] - m1[1]) / 2];
-        //console.log(ords);
+        var m1 = d3.mouse(this),
+            o1 = [o0[0] + (m1[0] - m0[0]) / 4, o0[1] + (m0[1] - m1[1]) / 2];
         projection.rotate(o1);
         svg.selectAll("path").attr("d", path);
       }
@@ -169,7 +167,6 @@
     /*** 
     ** Load world 
     ****/
-    var locations;
     d3.json("world-110m.json", function(error, world) {
       //Create the base globe
       svg.append("circle")
@@ -177,8 +174,6 @@
         .attr('cy', height / 2)
         .attr('r', projection.scale())
         .attr('class', 'globe');
-          //.attr("fill", "url(#gradBlue)");
-          //.attr("filter", "url(#glow)")
       
       svg.append("path")
         .datum(topojson.feature(world, world.objects.land))
@@ -323,7 +318,9 @@
       //scroll to the selected one
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
       var scrollY = albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left) - 60;
-      albumContainer.animate({scrollLeft: scrollY}, 300);
+      var animationSpeed = Math.min(400, Math.floor(400 * Math.abs(scrollY - albumContainer.scrollLeft()) / (albumContainer.width() * 1.0)));
+      albumContainer.stop();
+      albumContainer.animate({scrollLeft: scrollY}, animationSpeed);
 
     };
     
