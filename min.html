@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <head>
-  <script src="/d3.v3.js"></script>
-  <script src="/topojson.v1.js"></script>
-  <script src="/underscore-min.js"></script>
-  <script src="/fb_munger.js"></script>
+  <script src="d3.v3.js"></script>
+  <script src="topojson.v1.js"></script>
+  <script src="underscore-min.js"></script>
+  <script src="fb_munger.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 </head>
 <body>
@@ -169,7 +169,8 @@
     /*** 
     ** Load world 
     ****/
-    d3.json("/world-110m.json", function(error, world) {
+    var locations;
+    d3.json("world-110m.json", function(error, world) {
       //Create the base globe
       svg.append("circle")
         .attr('cx', width / 2)
