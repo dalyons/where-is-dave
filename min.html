@@ -116,6 +116,8 @@
     <input id='fbToken' style='display:none;'>
     <button id='fbLoad' style='display:none;'>Load</button>
     <button id='play'>Play</button>
+    <input type='radio' name='featuredOnly' value='all' checked='true'>All</input>
+    <input type='radio' name='featuredOnly' value='featured'>Best of</input>
   </div>
   
   
@@ -249,9 +251,12 @@
       syncTimeslider(point);
     }
 
+    var onlyFeatureRatedImages;
     function setFeaturedTo(point) {
-      $('.featured a img').attr('src', point.properties.src);
-      $('.featured a').attr('href', 'http://facebook.com/' + point.properties.id);
+      if (!onlyFeatureRatedImages || (point.properties.rating && point.properties.rating > 0)) {
+        $('.featured a img').attr('src', point.properties.src);
+        $('.featured a').attr('href', 'http://facebook.com/' + point.properties.id);
+      }
     }
     
     function syncTimeslider(point) {
@@ -411,6 +416,10 @@
 
     $('#play').click(function() {
       playing ? pauseTour(this) : playTour(this);
+    });
+    
+    $("input[name='featuredOnly']").change(function(){
+      onlyFeatureRatedImages = ($(this).val() === 'featured');
     });
 
     $(document).keydown(function(e){
