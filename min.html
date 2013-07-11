@@ -91,6 +91,7 @@
     }
     .featured a img {
       width: 380px;
+      cursor: magnify;
       //z-index: -2;
       //position: relative;
     }
@@ -125,7 +126,7 @@
   <ul class=album>
   </ul>
   <div class=featured>
-    <a><img /></a>
+    <a target='_blank'><img /></a>
   </div>
 
   <div class=timeControls>
@@ -252,8 +253,9 @@
 
     function setFeaturedTo(point) {
       $('.featured a img').attr('src', point.properties.src);
-      $('.featured a').attr('href', 'http://facebook.com/' + point.properties.id);
-      $('.featured a').attr('target', '_blank');
+      //$('.featured a').attr('href', 'http://facebook.com/' + point.properties.id);
+      //$('.featured a').attr('target', '_blank');
+      $('.featured a').attr('href', point.properties.src_big);
     }
     
     function syncTimeslider(point) {

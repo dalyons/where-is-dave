@@ -47,7 +47,8 @@ function standardize(photos) {
       "coordinates": photo.coords,
       "description": photo.caption,
       "thumbnail": photo.src,
-      "src": photo.src_big
+      "src": photo.src_big,
+      "src_big": photo.images[0] && photo.images[0].source
     }
   });
 }
@@ -55,7 +56,7 @@ function standardize(photos) {
 
 function buildUrl(access_token) {
   var query = JSON.stringify({
-    "photos": "select object_id, owner, caption, backdated_time, created, src_small, src, src_big, place_id  FROM photo WHERE (object_id IN (SELECT object_id FROM photo_tag WHERE subject='544095626') or owner = 544095626 or owner = 424460880913112) and created > 1339457709 and place_id <> '' order by created",
+    "photos": "select object_id, owner, caption, backdated_time, created, src_small, src, src_big, images, place_id  FROM photo WHERE (object_id IN (SELECT object_id FROM photo_tag WHERE subject='544095626') or owner = 544095626 or owner = 424460880913112) and created > 1339457709 and place_id <> '' order by created",
     "places": "select page_id, geometry, name, type from place where page_id in (select place_id from #photos)" 
   });
   
