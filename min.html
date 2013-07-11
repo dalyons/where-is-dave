@@ -61,7 +61,7 @@
       margin-left: 3px;
       cursor: pointer;
     }
-    .album li img {
+    .album li img.loaded {
       border: 2px solid black;
     }
     body {
@@ -167,7 +167,7 @@
 
 
     /*** 
-    ** Load data 
+    ** Load world 
     ****/
     d3.json("/world-110m.json", function(error, world) {
       //Create the base globe
@@ -191,6 +191,10 @@
         .attr("d", path);
     });
     
+
+    /*
+     * Location processing
+     */
     var locations;
     function loadLocationPoints(points) { 
       locations = geoize(points);
@@ -209,6 +213,7 @@
         .on("click", function(point){ moveTo(point) })
         .attr("d", path.pointRadius(2)); 
 
+      preRenderAlbum();
       moveTo(uniqueLocations[0]);
     };
     
@@ -284,51 +289,40 @@
     }
     
 
+    function preRenderAlbum(){
+      var elms = _.map(locations, function(location) { 
+        return '<li id="' + location.id + '">' +
+               '  <img class="albumImage" src="noimage.gif" alt="' + location.description + '" data-id="' + location.id + '"/>' +
+               '</li>'
+      });
+      $('.album').append(elms);
+    }
 
     //for each elem, determine if its in the set.
     //if not, insert it after the first elem in the the set that its greater than
-
-    var loadedIds = []; 
-    var cacheMap = {};
+    var loadedImgs = {};
     var PRELOAD_COUNT = 20;
-    var MAX_CACHE_SIZE = 100;
     
     function scrollAlbumTo(point) { 
       var index = _.indexOf(locations, point);
       
       var newIds = [];
-      _.each(locations.slice(index, index + PRELOAD_COUNT), function(location) {
+      _.each(locations.slice((index < 2 ? 0 : index - 2), index + PRELOAD_COUNT), function(location) {
         var id = location.id.toString();
-        if (!_.contains(loadedIds, id)) {
+        if (!loadedImgs[id]) {
           newIds.push(id);
-          loadedIds.push(id);
-          cacheMap[id] = location.properties;
+          loadedImgs[id] = location.properties;
         }
       });
       
-      //re-sort cache list
-      loadedIds = _.sortBy(loadedIds, function(id) { return cacheMap[id].timestamp });
-
-      //for each new id
       _.each(newIds, function(id) {
-        var nextPoint = cacheMap[id];
-        var elm = $(
-          '<li id="' + nextPoint.id + '">' +
-          '<img class="albumImage" src="' + nextPoint.thumbnail + '" alt="' + nextPoint.description + '" data-id="' + nextPoint.id + '"/>' +
-          '</li>'
-        );
-        
-        var insertPos = _.indexOf(loadedIds, id, true);
-        if (insertPos < 1)
-          elm.prependTo('.album')
-        else 
-          elm.insertAfter('#' + loadedIds[insertPos - 1]);
-      });
-
+        $('#' + id + ' .albumImage').attr('src', loadedImgs[id].thumbnail).addClass('loaded');
+      })
+      
       //scroll to the selected one
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
       var scrollY = albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left) - 60;
-      albumContainer.animate({scrollLeft: scrollY}, 100);
+      albumContainer.animate({scrollLeft: scrollY}, 300);
 
     };
     
