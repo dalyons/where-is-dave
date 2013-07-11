@@ -11,16 +11,22 @@
 </head>
 <body>
   <style>
-    html, body, div, form, fieldset, legend, label {
-      margin: 0;
-      padding: 0; 
+    html, body, div, form, fieldset, legend, label, ul {
+      margin: 0; padding: 0; 
     }
-
+    ul {
+      white-space: nowrap; list-style: none;
+    }
+    a {
+      color: white; text-decoration: none;
+    }
+    * { 
+      font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
+    }
     .land {
       fill: #4F8256;
       fill: url(#gradGreenRad);
     }
-
     .boundary {
       fill: none;
       stroke: rgba(255,255,255,0.5);
@@ -47,17 +53,13 @@
     .album {
       position: relative;
       top: -20px;
-      padding: 0;
-      margin: 0;
       width: 100%;
       height: 130px; 
       overflow-x: hidden;
       overflow-y: hidden;
       text-align: center;
-      white-space: nowrap;
-      list-style: none;
       //TODO: looks like shit, maybe try a css transition?
-      -webkit-mask-image: -webkit-linear-gradient(right, rgba(0,0,0,0), rgba(0,0,0,1) 3%, rgba(0,0,0,1) 97%, rgba(0,0,0,0) 100%)
+      //-webkit-mask-image: -webkit-linear-gradient(right, rgba(0,0,0,0), rgba(0,0,0,1) 3%, rgba(0,0,0,1) 97%, rgba(0,0,0,0) 100%)
     }
     .album li {
       display: inline-block;
@@ -74,6 +76,9 @@
       margin: 0; padding: 0;
       background-color: black;
     }
+    .main { 
+      position: relative;
+    }
     .controls { 
       position: absolute;
       top: 0;
@@ -84,7 +89,7 @@
     }
     .featured {
       position: absolute;
-      bottom: 200px;
+      bottom: 40px;
       right: 0px;
       width: 400px;
       //box-shadow: inset 0px 0px 20px 10px rgba(0,0,0,0.99);
@@ -94,6 +99,15 @@
       cursor: magnify;
       //z-index: -2;
       //position: relative;
+    }
+    .featured ul.links {
+      width: 100%;
+      text-align: right;
+    }
+    .featured .links li {
+      display: inline-block;
+      color: white;
+      margin-right: 15px
     }
     #defs { //hax
       width: 0; height: 0;
@@ -121,13 +135,18 @@
   </div>
   
   
-  <div class=main></div>
+  <div class=main>
+    <div class=featured>
+      <a target='_blank'><img /></a>
+      <ul class=links>
+        <li><a class=fullscreen target='_blank'>Fullscreen</a></li>
+        <li><a class=external target='_blank'>Facebook</a></li>
+      </ul>
+    </div>
+  </div>
 
   <ul class=album>
   </ul>
-  <div class=featured>
-    <a target='_blank'><img /></a>
-  </div>
 
   <div class=timeControls>
     <input type='range' min=0 max=1000 class='timeslide' value=0 >
@@ -255,7 +274,8 @@
       $('.featured a img').attr('src', point.properties.src);
       //$('.featured a').attr('href', 'http://facebook.com/' + point.properties.id);
       //$('.featured a').attr('target', '_blank');
-      $('.featured a').attr('href', point.properties.src_big);
+      $('.featured a.fullscreen').attr('href', point.properties.src_big);
+      $('.featured a.external').attr('href', 'http://facebook.com/' + point.properties.id);
     }
     
     function syncTimeslider(point) {
