@@ -114,6 +114,7 @@
 
   <div class=controls>
     <input id='fbToken' style='display:none;'>
+    <input id='locationsJSON' type='hidden'>
     <button id='fbLoad' style='display:none;'>Load</button>
     <button id='play'>Play</button>
   </div>
@@ -359,11 +360,18 @@
   $(function(){
     //load fb token from url
     function getURLParameter(name) {
-      return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+      return decodeURIComponent((new RegExp('[?|&|#]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
     }
     var token = getURLParameter('access_token');
     $('#fbToken').val(token);
-    fetchFB(token, loadLocationPoints);
+    
+    if(getURLParameter('use_cached'))
+      $.get('cached_locations.json', loadLocationPoints);
+    else
+      fetchFB(token, function(points) {
+        $('#locationsJSON').val(JSON.stringify(points)); //dump them into a hidden input
+        loadLocationPoints(points);
+      });
   });
 
   /* 
