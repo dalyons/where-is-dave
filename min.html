@@ -49,11 +49,13 @@
       fill: none;
     }
     .highlightedCountry {
-      fill: rgba(255,255,255,0.1); 
+      fill: rgba(255,255,153,0.2); 
+      z-index: -1;
     }
     .point {
       fill: #ee8822;
       cursor: pointer;
+      z-index: 500px;
     }
     .album {
       position: relative;
@@ -252,7 +254,14 @@
       //associate the country with each point
       _.each(uniqueLocations, function(location) {
         location.country = _.detect(countries, function(country) {
-          return isPointInsidePoly(country.geometry.coordinates[0], location.geometry.coordinates);
+          //country polygons can be either:
+          // - a geojson Polygon(a single elm array whos 1st elm is an array of coord point arrays)
+          // - a geojson MultiPolygon(an array of Polygons). [this happens when a country has multiple landmasses]
+          //So, lets at least make them look the same.
+          var polys = (country.geometry.type == 'MultiPolygon' ? country.geometry.coordinates : [country.geometry.coordinates]);
+          return _.any(polys, function(poly) {
+            return isPointInsidePoly(poly[0], location.geometry.coordinates);
+          });
         });
       });
 
