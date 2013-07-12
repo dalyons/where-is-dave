@@ -319,8 +319,6 @@
 
     function setFeaturedTo(point) {
       $('.featured a img').attr('src', point.properties.src);
-      //$('.featured a').attr('href', 'http://facebook.com/' + point.properties.id);
-      //$('.featured a').attr('target', '_blank');
       $('.featured a.fullscreen').attr('href', point.properties.src_big);
       $('.featured a.external').attr('href', 'http://facebook.com/' + point.properties.id);
     }
@@ -578,3 +576,15 @@
             </filter>
         </defs>
     </svg>
+    
+
+  <!-- Google Analytics gunk -->
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-37068461-2', 'dalyons.github.io');
+    ga('send', 'pageview');
+  </script>
