@@ -126,8 +126,15 @@
     .featured .links li i {
       margin-right: 8px;
     }
-    #defs { //hax
-      width: 0; height: 0;
+    .timeControls {
+      margin: 0px 30px;
+      position: relative;
+    }
+    .timeControls .distance {
+      position: absolute;
+      right: 0; 
+      top: -15px;
+      color: white;
     }
     
     //style range slider
@@ -138,8 +145,8 @@
       -webkit-border-radius:10px; -moz-border-radius:10px; -ms-border-radius:10px; -o-border-radius:10px; border-radius:10px;
       background-image:-webkit-gradient(linear, left top, left bottom, color-stop(0, #fefefe), color-stop(0.49, #dddddd), color-stop(0.51, #d1d1d1), color-stop(1, #a1a1a1) );
     }
-    .timeControls {
-      margin: 0px 30px;
+    #defs { //svg hax
+      width: 0; height: 0;
     }
     
   </style>
@@ -169,6 +176,7 @@
   </ul>
 
   <div class=timeControls>
+    <div class='distance'>-</div>
     <input type='range' min=0 max=1000 class='timeslide' value=0 >
   </div>
   
@@ -319,20 +327,25 @@
         .attr('max', locations.length - 1)
         .attr('min', 0)
         .val(_.indexOf(locations, point));
+      $('.timeControls .distance').html(Math.floor(trailDistance) + ' km');
     }
 
+    var trailDistance;
     function drawTrailUpTo(point) {
       //var filteredPoints = _.reject(locations, function(p,i) { return p.properties.timestamp > timestamp });
-      var arcs = [], visitedCountries = {};
+      var arcs = [], visitedCountries = {}, trailRads = 0;
       for (var i = 1; i <= _.indexOf(locations, point); i++) {
         var l = locations[i], l1 = locations[i-1];
         if (!isCloseEnough(l.geometry, l1.geometry)) {
           arcs.push({ "type": "LineString", "coordinates": [ l1.geometry.coordinates, l.geometry.coordinates ]});
+          trailRads += d3.geo.distance(l1.geometry.coordinates, l.geometry.coordinates);
           if (l.country)
             visitedCountries[l.country.id] = l.country;
         }
       };
-      console.log('trail length ' + arcs.length);
+      console.log('trail points ' + arcs.length);
+      trailDistance = trailRads * 6371;
+      console.log('trail distance ' + trailDistance);
       
       var trails = 
         svg.selectAll("path.trail")
@@ -407,7 +420,7 @@
         $('#' + id + ' .albumImage').attr('src', loadedImgs[id].thumbnail).addClass('loaded');
       })
       
-      //scroll to the selected one
+      //scroll to the selected one, vary the animation speed by proximity of the element to current element. quicker if closer.
       var albumContainer = $('.album'), currentElm = $('#' + point.properties.id);
       var scrollY = albumContainer.scrollLeft() + (currentElm.position().left - albumContainer.position().left) - 60;
       var animationSpeed = Math.min(400, Math.floor(400 * Math.abs(scrollY - albumContainer.scrollLeft()) / (albumContainer.width() * 1.0)));
@@ -519,11 +532,9 @@
       switch(e.which) {
         case 37: // left
           moveTo(locations[parseInt($('.timeslide').val()) - 1])
-          //$('.timeslide').val(parseInt($('.timeslide').val()) - 1).trigger('change');
           break;
         case 39: // right
           moveTo(locations[parseInt($('.timeslide').val()) + 1])
-          //$('.timeslide').val(parseInt($('.timeslide').val()) + 1).trigger('change');
           break;
         default: return; // exit this handler for other keys
       }
