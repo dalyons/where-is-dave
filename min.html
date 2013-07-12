@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <head>
+  <title>Where is dave?</title>
   <script src="d3.v3.js"></script>
   <script src="topojson.v1.js"></script>
   <script src="underscore-min.js"></script>
   <script src="html5slider.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
   
   <script src="fb_munger.js"></script>
 </head>
@@ -45,6 +47,9 @@
       stroke: #aabb66;
       stroke-width: 2px;
       fill: none;
+    }
+    .highlightedCountry {
+      fill: rgba(255,255,255,0.1); 
     }
     .point {
       fill: #ee8822;
@@ -86,6 +91,10 @@
       z-index: 50;
       color: white;
       font-family: Arial, Helvetica, sans-serif;
+      margin-right: 8px;
+    }
+    .controls i {
+      margin-right: 8px;
     }
     .featured {
       position: absolute;
@@ -107,7 +116,10 @@
     .featured .links li {
       display: inline-block;
       color: white;
-      margin-right: 15px
+      margin-right: 20px
+    }
+    .featured .links li i {
+      margin-right: 8px;
     }
     #defs { //hax
       width: 0; height: 0;
@@ -131,7 +143,7 @@
     <input id='fbToken' style='display:none;'>
     <input id='locationsJSON' type='hidden'>
     <button id='fbLoad' style='display:none;'>Load</button>
-    <button id='play'>Play</button>
+    <a href='#' id='play'><i class="icon-play"></i><span>Play</span></a>
   </div>
   
   
@@ -139,8 +151,8 @@
     <div class=featured>
       <a target='_blank'><img /></a>
       <ul class=links>
-        <li><a class=fullscreen target='_blank'>Fullscreen</a></li>
-        <li><a class=external target='_blank'>Facebook</a></li>
+        <li><a class=fullscreen target='_blank'><i class="icon-fullscreen"></i>Fullscreen</a></li>
+        <li><a class=external target='_blank'><i class="icon-facebook"></i>Facebook</a></li>
       </ul>
     </div>
   </div>
@@ -200,6 +212,7 @@
     /*** 
     ** Load world 
     ****/
+    var countries;
     d3.json("world-110m.json", function(error, world) {
       //Create the base globe
       svg.append("circle")
@@ -213,13 +226,14 @@
         .attr("class", "land")
         .attr("d", path); 
 
+      countries = topojson.feature(world, world.objects.countries).features;
+      
       // Draw county borders.
       svg.append("path")
         .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
         .attr("class", "boundary")
         .attr("d", path);
     });
-    
 
     /*
      * Location processing
@@ -235,6 +249,13 @@
       });
       console.log('found ' + uniqueLocations.length + ' unique locations');
       
+      //associate the country with each point
+      _.each(uniqueLocations, function(location) {
+        location.country = _.detect(countries, function(country) {
+          return isPointInsidePoly(country.geometry.coordinates[0], location.geometry.coordinates);
+        });
+      });
+
       svg.selectAll("path.point")
         .data(uniqueLocations)
         .enter().append("path")
@@ -287,11 +308,14 @@
 
     function drawTrailUpTo(point) {
       //var filteredPoints = _.reject(locations, function(p,i) { return p.properties.timestamp > timestamp });
-      var arcs = [];
+      var arcs = [], visitedCountries = {};
       for (var i = 1; i <= _.indexOf(locations, point); i++) {
         var l = locations[i], l1 = locations[i-1];
-        if (!isCloseEnough(l.geometry, l1.geometry))
+        if (!isCloseEnough(l.geometry, l1.geometry)) {
           arcs.push({ "type": "LineString", "coordinates": [ l1.geometry.coordinates, l.geometry.coordinates ]});
+          if (l.country)
+            visitedCountries[l.country.id] = l.country;
+        }
       };
       console.log('trail length ' + arcs.length);
       
@@ -304,6 +328,17 @@
         .attr("d", path);
       
       trails.exit().remove();
+      
+      var highlightedCountries =
+        svg.selectAll("path.highlightedCountry")
+          .data(_.values(visitedCountries), function(c) { return c.id });
+          
+      highlightedCountries.enter().append("path")
+          .attr("class", "highlightedCountry")
+          .attr("d", path);
+          
+      highlightedCountries.exit().remove();
+
     }
 
     var lastPoint; 
@@ -371,6 +406,23 @@
       var rounded = _.map([geoA,geoB], function(g){ return _.map(g.coordinates,function(c){ return Math.round(parseFloat(c)*10000) })});
       return rounded[0][0] == rounded[1][0] && rounded[0][1] == rounded[1][1];
     }
+    
+    //I am nowhere near smart enough to come up with this. Adapted from: http://stackoverflow.com/a/2922778/16925, credit to @bobobobo
+    function isPointInsidePoly(vertices, point) {
+      var testx = point[0] + 180,
+          testy = point[1] + 180,
+          vertx = _.map(vertices, function(p) { return p[0] + 180 }),
+          verty = _.map(vertices, function(p) { return p[1] + 180 }),
+          nvert = vertices.length;
+      
+      var c;
+      for (var i = 0, j = nvert-1; i < nvert; j = i++) {
+        if ( ((verty[i]>testy) != (verty[j]>testy)) &&
+         (testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]) )
+           c = !c;
+      }
+      return c;
+    }
 
   </script>
 
@@ -420,13 +472,15 @@
 
     var playing, tourIndex = 0;
     function pauseTour(btn) {
-      $(btn).html('play');
+      $(btn).find('i').attr('class','icon-play');
+      $(btn).find('span').html('Play');
       clearInterval(playing);
       playing = null;
     }
     
     function playTour(btn) {
-      $(btn).html('pause')
+      $(btn).find('i').attr('class','icon-pause');
+      $(btn).find('span').html('Pause');
       playing = setInterval(function(){
         tourIndex = tourIndex + 1;
         if (tourIndex < locations.length)
