@@ -98,6 +98,9 @@
     .controls i {
       margin-right: 8px;
     }
+    .devTools {
+      display: none;
+    }
     .featured {
       position: absolute;
       bottom: 40px;
@@ -142,9 +145,12 @@
   </style>
 
   <div class=controls>
-    <input id='fbToken' style='display:none;'>
-    <input id='locationsJSON' type='hidden'>
-    <button id='fbLoad' style='display:none;'>Load</button>
+    <span class='devTools'>
+      <input id='fbToken'>
+      <input id='locationsJSON' type='hidden'>
+      <button id='fbLoad'>Load</button>
+      <a id='fbJSON'>JSON</a>
+    </span>
     <a href='#' id='play'><i class="icon-play"></i><span>Play</span></a>
   </div>
   
@@ -450,11 +456,15 @@
     
     if(getURLParameter('use_cached'))
       $.get('cached_locations.json', loadLocationPoints);
-    else
+    else {
+      $('.devTools').show();
       fetchFB(token, function(points) {
-        $('#locationsJSON').val(JSON.stringify(points)); //dump them into a hidden input
+        //$('#locationsJSON').val(JSON.stringify(points)); //dump them into a hidden input
+        $('#fbJSON').attr('href', 'data:application/octet-stream,' + escape(JSON.stringify(points)));
+        $('#fbJSON').attr('download', 'cached_locations.json');
         loadLocationPoints(points);
       });
+    }
   });
 
   /* 
