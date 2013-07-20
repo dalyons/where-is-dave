@@ -403,13 +403,17 @@
     //for each elem, determine if its in the set.
     //if not, insert it after the first elem in the the set that its greater than
     var loadedImgs = {};
-    var PRELOAD_COUNT = 20;
+    var PRELOAD_COUNT = 40;
+    var albumIndex = 0;
     
     function scrollAlbumTo(point) { 
-      var index = _.indexOf(locations, point);
+      albumIndex = _.indexOf(locations, point); //inefficient, whatevs. JS is fast, right :)
       
       var newIds = [];
-      _.each(locations.slice((index < 2 ? 0 : index - 2), index + PRELOAD_COUNT), function(location) {
+      var preLoadFrom = albumIndex < 2 ? 0 : albumIndex - 2,
+          preLoadTo = albumIndex + PRELOAD_COUNT;
+          
+      _.each(locations.slice(preLoadFrom,preLoadTo), function(location) {
         var id = location.id.toString();
         if (!loadedImgs[id]) {
           newIds.push(id);
@@ -503,7 +507,7 @@
       fetchFB(token, loadLocationPoints);
     });
 
-    var playing, tourIndex = 0;
+    var playing;
     function pauseTour(btn) {
       $(btn).find('i').attr('class','icon-play');
       $(btn).find('span').html('Play');
@@ -515,12 +519,12 @@
       $(btn).find('i').attr('class','icon-pause');
       $(btn).find('span').html('Pause');
       playing = setInterval(function(){
-        tourIndex = tourIndex + 1;
-        if (tourIndex < locations.length)
-          moveTo(locations[tourIndex]);
+        var nextIndex = albumIndex + 1;
+        if (nextIndex < locations.length)
+          moveTo(locations[nextIndex]);
         else {
           pauseTour();
-          tourIndex = 0;
+          moveTo(locations[0]);
         }
       },80);
     }
