@@ -75,7 +75,6 @@
     
     .main { 
       position: relative;
-      pointer-events: none; //hax, couldn't figure out my z-indexs properly.
     }
     .dataTools {
       position: absolute;
@@ -203,9 +202,6 @@
 
   <div id='enbiggened'><img /></div>
   
-  <div class='dataTools'>
-    <a href='#' class='connectToFB'><i class='icon-cloud-download'></i>I don't care about Dave, load my own pictures!</a>
-  </div>
 
   <div class='devTools'>
     <input id='fbToken'>
@@ -216,6 +212,9 @@
   
   
   <div class=main>
+    <div class='dataTools'>
+      <a href='#' class='connectToFB'><i class='icon-cloud-download'></i>I don't care about Dave, load my own pictures!</a>
+    </div>
     <div class=controls>
       <a href='#' id='play'><i class="icon-play"></i><span>Play</span></a>
     </div>
