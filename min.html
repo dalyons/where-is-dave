@@ -203,7 +203,7 @@
       <a href='#' id='play'><i class="icon-play"></i><span>Play</span></a>
     </div>
     <div class=featured>
-      <img class='enbiggenable' />
+      <img class='enbiggenable loaded' />
       <ul class=links>
         <li><a class=fullscreen target='_blank'><i class="icon-fullscreen"></i>Fullscreen</a></li>
         <li><a class=external target='_blank'><i class="icon-facebook"></i>Facebook</a></li>
@@ -353,12 +353,34 @@
       syncTimeslider(point);
     }
 
+    var queuedPoint;
     function setFeaturedTo(point) {
-      $('.featured img').attr('src', point.properties.src);
-      $('.featured img').data('src_big', point.properties.src_big);
+      if (!queuedPoint) {
+        loadFeaturedFromPoint(point, function(){
+          if (queuedPoint) {
+            var nextPoint = queuedPoint;
+            queuedPoint = null;
+            setFeaturedTo(nextPoint);
+          }
+        });
+      } 
+      else {
+        queuedPoint = point;
+      }
+    }
+    
+    function loadFeaturedFromPoint(point, done) {
+      console.log('loading featured image for', point);
       $('.featured a.fullscreen').attr('href', point.properties.src_big);
       $('.featured a.external').attr('href', 'http://facebook.com/' + point.properties.id);
+      $('.featured img').data('src_big', point.properties.src_big);
+      $('.featured img')
+        .one('load error',function(){
+          done.call();
+        })
+        .attr('src', point.properties.src);
     }
+
     
     function syncTimeslider(point) {
       $('.timeslide')
@@ -437,12 +459,9 @@
       $('.album').append(elms);
     }
 
-    //for each elem, determine if its in the set.
-    //if not, insert it after the first elem in the the set that its greater than
-    var loadedImgs = {};
-    var PRELOAD_COUNT = 40;
-    var albumIndex = 0;
-    
+    var loadedImgs = {},
+        PRELOAD_COUNT = 40,
+        albumIndex = 0;
     function scrollAlbumTo(point) { 
       albumIndex = _.indexOf(locations, point); //inefficient, whatevs. JS is fast, right :)
       
