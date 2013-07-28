@@ -1,5 +1,5 @@
 ;(function(window) {
-  var window = window;
+  var window = window, extraOwnerIds = [];
   
   function fetchLocationImages(access_token, onComplete) {
     var url = buildUrl(access_token);
@@ -57,8 +57,9 @@
 
 
   function buildUrl(access_token) {
+    //var extraOwnerIds = [424460880913112];
     var query = JSON.stringify({
-      "photos": "select object_id, owner, caption, backdated_time, created, src_small, src, src_big, images, place_id  FROM photo WHERE (object_id IN (SELECT object_id FROM photo_tag WHERE subject=me()) or owner = me() or owner = 424460880913112) and created > 1339210800 and place_id <> '' order by created",
+      "photos": "select object_id, owner, caption, backdated_time, created, src_small, src, src_big, images, place_id  FROM photo WHERE (object_id IN (SELECT object_id FROM photo_tag WHERE subject=me()) or owner = me() or owner in (" + extraOwnerIds.toString() + ")) and created > 1339210800 and place_id <> '' order by created",
       "places": "select page_id, geometry, name, type from place where page_id in (select place_id from #photos)" 
     });
     var url = 'https://graph.facebook.com/fql?q=' + escape(query);
@@ -74,6 +75,7 @@
 
 
  window.FBGeoMunger = {
-    fetchLocationImages: fetchLocationImages
+    fetchLocationImages: fetchLocationImages,
+    extraOwnerIds: extraOwnerIds
   }
 }(this.window || this));

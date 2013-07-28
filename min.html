@@ -535,7 +535,7 @@
 
 <script>
   /*
-   * init FB
+   * init location data 
    */
   $(function(){
     //load fb token from url
@@ -545,6 +545,11 @@
     var token = getURLParameter('access_token');
     $('#fbToken').val(token);
     
+    //you can add extra image owner ids(eg a facebook page, and it will load images for them as well)
+    var extraOwnerIds = getURLParameter('extra_owner_ids').split(',');
+    _.each(extraOwnerIds, function(id){ FBGeoMunger.extraOwnerIds.push(id) });
+    
+    //can serve the locations json statically(ie, for sharing your globe)
     if(getURLParameter('use_cached'))
       $.get('cached_locations.json', loadLocationPoints);
     
@@ -592,7 +597,7 @@
     });
     
     $('.dataTools .connectToFB').click(function(){
-      FB.loginAndGetToken(function(accessToken) {
+      FB.loginAndGetToken(function(accessToken, userId) {
         FBGeoMunger.fetchLocationImages(accessToken,loadLocationPoints)
       });
     });
@@ -691,7 +696,8 @@
             if (response.authResponse) {
               console.log('Welcome!  Fetching your information.... ');
               var accessToken = response.authResponse.accessToken;
-              onComplete(accessToken);
+              var userId = response.authResponse.userID;
+              onComplete(accessToken,userId);
             } else {
               alert("*Shrug* I cant display your photos if I can't read them.")
             }
