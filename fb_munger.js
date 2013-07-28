@@ -42,17 +42,21 @@
   }
 
   function standardize(photos) {
-    return _.map(photos, function(photo) {
-      return {
-        "id": photo.object_id,
-        "timestamp": photo.created,
-        "coordinates": photo.coords,
-        "description": photo.caption,
-        "thumbnail": photo.src,
-        "src": photo.src_big,
-        "src_big": photo.images[0] && photo.images[0].source
-      }
+    var standardizedPhotos = 
+      _.map(photos, function(photo) {
+        return {
+          "id": photo.object_id,
+          "timestamp": photo.created,
+          "coordinates": photo.coords,
+          "description": photo.caption,
+          "thumbnail": photo.src,
+          "src": photo.src_big,
+          "src_big": photo.images[0] && photo.images[0].source
+        }
     });
+    return _.filter(standardizedPhotos, function(photo) {
+      return photo.coordinates;
+    })
   }
 
 
