@@ -320,7 +320,7 @@
       });
       console.log('found ' + uniqueLocations.length + ' unique locations');
       
-      //associate the country with each point
+      //associate the country with each point, by checking what country poly the point is inside.
       _.each(uniqueLocations, function(location) {
         location.country = _.detect(countries, function(country) {
           //country polygons can be either:
