@@ -369,15 +369,20 @@
       syncTimeslider(point);
     }
 
+    //When rapidly scrolling through, if your connection isnt fast enough the featured image will get 'stuck' on a single image
+    //because none of the img loads will finish before the next one starts. So a hacky one element queue takes care of that. 
+    //It will load the most recently requested img when the prev load completes.
     var queuedPoint;
     function setFeaturedTo(point) {
       if (!queuedPoint) {
+        queuedPoint = point; 
         loadFeaturedFromPoint(point, function(){
-          if (queuedPoint) {
+          if (queuedPoint && queuedPoint != point) {
             var nextPoint = queuedPoint;
             queuedPoint = null;
             setFeaturedTo(nextPoint);
           }
+          queuedPoint = null;
         });
       } 
       else {
@@ -385,14 +390,13 @@
       }
     }
     
-    function loadFeaturedFromPoint(point, done) {
-      console.log('loading featured image for', point);
+    function loadFeaturedFromPoint(point, onComplete) {
       $('.featured a.fullscreen').attr('href', point.properties.src_big);
       $('.featured a.external').attr('href', 'http://facebook.com/' + point.properties.id);
       $('.featured img').data('src_big', point.properties.src_big);
       $('.featured img')
         .one('load error',function(){
-          done.call();
+          onComplete.call();
         })
         .attr('src', point.properties.src);
     }
@@ -465,6 +469,15 @@
       lastPoint = point;
     }
     
+    function clear() {
+      $('.album').empty();
+      $('.featured img').removeClass('loaded').attr('src','#');
+      $('.timeslide').val(0);
+      lastPoint = null;
+      loadedImgs = {};
+      queuedPoint = null;
+      albumIndex = 0;
+    }
 
     function preRenderAlbum(){
       var elms = _.map(locations, function(location) { 
@@ -545,7 +558,7 @@
     $('#fbToken').val(token);
     
     //you can add extra image owner ids(eg a facebook page, and it will load images for them as well)
-    var extraOwnerIds = getURLParameter('extra_owner_ids').split(',');
+    var extraOwnerIds = (getURLParameter('extra_owner_ids') ||'').split(',');
     _.each(extraOwnerIds, function(id){ FBGeoMunger.extraOwnerIds.push(id) });
     
     //can serve the locations json statically(ie, for sharing your globe)
@@ -597,6 +610,7 @@
     
     $('.dataTools .connectToFB').click(function(){
       FB.loginAndGetToken(function(accessToken, userId) {
+        clear();
         FBGeoMunger.fetchLocationImages(accessToken,loadLocationPoints)
       });
     });
