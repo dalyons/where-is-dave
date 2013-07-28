@@ -13,6 +13,7 @@
 </head>
 <body>
   <style>
+    /** Resets, etc **/
     html, body, div, form, fieldset, legend, label, ul {
       margin: 0; padding: 0; 
     }
@@ -26,6 +27,15 @@
       font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
       color: white;
     }
+    body {
+      margin: 0; padding: 0;
+      background-color: black;
+    }
+    i {
+      margin-right: 8px;
+    }
+    
+    /** SVG styles for the globe **/
     .land {
       fill: #4F8256;
       fill: url(#gradGreenRad);
@@ -58,12 +68,18 @@
       cursor: pointer;
       z-index: 500px;
     }
-    body {
-      margin: 0; padding: 0;
-      background-color: black;
-    }
+    
+    /** layout divs **/
+    
     .main { 
       position: relative;
+      pointer-events: none; //hax, couldn't figure out my z-indexs properly.
+    }
+    .dataTools {
+      position: absolute;
+      top: 5px;
+      right: 0;
+      margin-right: 8px;
     }
     .devTools {
       display: none;
@@ -104,6 +120,7 @@
 
     .featured {
       position: absolute;
+      z-index: 1;
       bottom: 40px;
       right: 0px;
       width: 400px;
@@ -120,9 +137,6 @@
       display: inline-block;
       color: white;
       margin-right: 20px
-    }
-    .featured .links li i {
-      margin-right: 8px;
     }
     
     /** UI controls **/
@@ -141,9 +155,6 @@
       position: absolute;
       bottom: 30px;
       left: 15px;
-    }
-    .controls i {
-      margin-right: 8px;
     }
     
     /** Lightboxable images **/
@@ -190,6 +201,10 @@
 
   <div id='enbiggened'><img /></div>
   
+  <div class='dataTools'>
+    <a href='#' class='connectToFB'><i class='icon-cloud-download'></i>I don't care about Dave, load my own pictures!</a>
+  </div>
+
   <div class='devTools'>
     <input id='fbToken'>
     <input id='locationsJSON' type='hidden'>
@@ -530,9 +545,11 @@
     
     if(getURLParameter('use_cached'))
       $.get('cached_locations.json', loadLocationPoints);
-    else {
+    
+    if(getURLParameter('dev')) {
+      /* Load from FB and make the data available for d/l */
       $('.devTools').show();
-      fetchFB(token, function(points) {
+      FBGeoMunger.fetchLocationImages(token, function(points) {
         //$('#locationsJSON').val(JSON.stringify(points)); //dump them into a hidden input
         $('#fbJSON').attr('href', 'data:application/octet-stream,' + escape(JSON.stringify(points)));
         $('#fbJSON').attr('download', 'cached_locations.json');
@@ -569,7 +586,13 @@
 
     $('#fbLoad').click(function() {
       var token = $('#fbToken').val()
-      fetchFB(token, loadLocationPoints);
+      FBGeoMunger.fetchLocationImages(token, loadLocationPoints);
+    });
+    
+    $('.dataTools .connectToFB').click(function(){
+      FB.loginAndGetToken(function(accessToken) {
+        FBGeoMunger.fetchLocationImages(accessToken,loadLocationPoints)
+      });
     });
 
     var playing;
@@ -614,38 +637,76 @@
   });
 </script>
 
+  <!-- Mostly gunk below here -->
 
+  <!-- SVG gradient effects gunk -->
+  
   <svg id="defs">
-        <defs>
-            <radialGradient id="gradBlueRad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                <stop offset="0%" style="stop-color:#3e6189;stop-opacity:1" /> 
-                <stop offset="50%" style="stop-color:#3f648c;stop-opacity:1" />
-                <stop offset="80%" style="stop-color:#476f9d;stop-opacity:1" />
-                <stop offset="94%" style="stop-color:#567fad;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#8bb0d8;stop-opacity:1" />
-            </radialGradient>
-            <radialGradient id="gradGreenRad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                <stop offset="0%" style="stop-color:#25791e;stop-opacity:1" />
-                <stop offset="50%" style="stop-color:#298721;stop-opacity:1" />
-                <stop offset="94%" style="stop-color:#27a20a;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#2fa613;stop-opacity:1" />
-            </radialGradient>
-            <filter id="glow">
-                <feColorMatrix type="matrix"
-                    values=
-                    "0 0 0 0   0
-                     0 0 0 0.9 0 
-                     0 0 0 0.9 0 
-                     0 0 0 1   0"/>
-                <feGaussianBlur stdDeviation="5.5" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            </filter>
-        </defs>
-    </svg>
+    <defs>
+      <radialGradient id="gradBlueRad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+        <stop offset="0%" style="stop-color:#3e6189;stop-opacity:1" /> 
+        <stop offset="50%" style="stop-color:#3f648c;stop-opacity:1" />
+        <stop offset="80%" style="stop-color:#476f9d;stop-opacity:1" />
+        <stop offset="94%" style="stop-color:#567fad;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#8bb0d8;stop-opacity:1" />
+      </radialGradient>
+      <radialGradient id="gradGreenRad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+        <stop offset="0%" style="stop-color:#25791e;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#298721;stop-opacity:1" />
+        <stop offset="94%" style="stop-color:#27a20a;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#2fa613;stop-opacity:1" />
+      </radialGradient>
+      <filter id="glow">
+        <feColorMatrix type="matrix"
+            values=
+            "0 0 0 0   0
+             0 0 0 0.9 0 
+             0 0 0 0.9 0 
+             0 0 0 1   0"/>
+        <feGaussianBlur stdDeviation="5.5" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+  </svg>
     
+
+  <!-- FB SDK gunk -->
+  
+  <div id="fb-root"></div>
+  <script>
+    window.fbAsyncInit = function() {
+      // init the FB JS SDK
+      FB.init({
+        appId      : '606058496081389',                        // App ID from the app dashboard
+        status     : true                                 // Check Facebook Login status
+      });
+      
+      FB.loginAndGetToken = function(onComplete){
+        FB.login(function(response) {
+            if (response.authResponse) {
+              console.log('Welcome!  Fetching your information.... ');
+              var accessToken = response.authResponse.accessToken;
+              onComplete(accessToken);
+            } else {
+              alert("*Shrug* I cant display your photos if I can't read them.")
+            }
+          },{scope: 'user_photos,friends_photos'});
+      };
+    };
+
+    // Load the SDK asynchronously
+    (function(d, s, id){
+       var js, fjs = d.getElementsByTagName(s)[0];
+       if (d.getElementById(id)) {return;}
+       js = d.createElement(s); js.id = id;
+       js.src = "//connect.facebook.net/en_US/all.js";
+       fjs.parentNode.insertBefore(js, fjs);
+     }(document, 'script', 'facebook-jssdk'));
+     
+  </script>
 
   <!-- Google Analytics gunk -->
   <script>
