@@ -647,6 +647,7 @@
     $('.album').on('click', 'img', function(){ 
       var id = $(this).data('id');
       var point = _.find(locations, function(p) { return p.id.toString() == id });
+      queuedPoint = null; //hax. Sometimes the featured image gets 'stuck'. Until I figure out whats causing it, this will 'unstick' it.
       moveTo(point);
     });
     

@@ -64,9 +64,15 @@
 
   function buildFQLUrl(access_token, from, to) {
     //var extraOwnerIds = [424460880913112];1339210800
+    
+    //handling Facebooks backdates is such a PITA. Why not just set the date correctly in the first place FB?
     var dateFilter = '';
-    if (from) dateFilter = dateFilter + ' and created > ' + (from / 1000).toString();
-    if (to) dateFilter = dateFilter + ' and created < ' + (to / 1000).toString();
+    if (from) 
+      dateFilter = dateFilter + ' and (backdated_time > ' + (from / 1000).toString() +
+                   ' or (not backdated_time and created > ' + (from / 1000).toString() + ')) ';
+    if (to)
+      dateFilter = dateFilter + ' and (backdated_time < ' + (to / 1000).toString() +
+                   ' or (not backdated_time and created < ' + (to / 1000).toString() + ')) ';
     
     var query = JSON.stringify({
       "photos": "select object_id, owner, caption, backdated_time, created, src_small, src, src_big, images, place_id  FROM photo WHERE (object_id IN (SELECT object_id FROM photo_tag WHERE subject=me()) or owner = me() or owner in (" + extraOwnerIds.toString() + ")) " + dateFilter + " and place_id <> '' order by created",
