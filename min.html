@@ -270,7 +270,7 @@
         <ul>
           <li>Englobulation complete! </li>
           <li>Too messy? Tips in
-          <a href='http://github.com/dalyons/where-is-dave/blob/master/README.md' class='readme' target='_blank'><i class='icon-file-text-alt'></i>Readme</a> or <a href='#' class='reset action' data-next-step=one><i class='icon-undo'></i>Start again</a></li>
+          <a href='http://github.com/dalyons/where-is-dave/blob/master/README.md' class='readme' target='_blank'><i class='icon-file-text-alt'></i>Readme</a> or <a href='#' class='reset action' data-next-step=two><i class='icon-undo'></i>Try again</a></li>
         </p>
       </div>
     </div>
@@ -370,6 +370,10 @@
      */
     var locations;
     function loadLocationPoints(points) { 
+      if (points.length == 0) {
+        alert('no geotagged photos found :(');
+        return;
+      }
       locations = geoize(points);
       console.log('loaded ' + locations.length + ' locations');
       
@@ -627,7 +631,7 @@
     if(getURLParameter('dev')) {
       /* Load from FB and make the data available for d/l */
       $('.devTools').show();
-      FBGeoMunger.fetchLocationImages(token, function(points) {
+      FBGeoMunger.fetchLocationImages({token: token}, function(points) {
         //$('#locationsJSON').val(JSON.stringify(points)); //dump them into a hidden input
         $('#fbJSON').attr('href', 'data:application/octet-stream,' + escape(JSON.stringify(points)));
         $('#fbJSON').attr('download', 'cached_locations.json');
@@ -664,7 +668,7 @@
 
     $('#fbLoad').click(function() {
       var token = $('#fbToken').val()
-      FBGeoMunger.fetchLocationImages(token, loadLocationPoints);
+      FBGeoMunger.fetchLocationImages({token: token}, loadLocationPoints);
     });
     
 
@@ -676,9 +680,10 @@
       setDataImportStage($(this).data('next-step'))
     });
     $('.dataTools .step.two .action').click(function(){
+      var startDate = Date.parse($('.startDate').val()), endDate = Date.parse($('.endDate').val());
       FB.loginAndGetToken(function(accessToken, userId) {
         clear();
-        FBGeoMunger.fetchLocationImages(accessToken, function(locations) {
+        FBGeoMunger.fetchLocationImages({token: accessToken, from: startDate, to: endDate},  function(locations) {
           loadLocationPoints(locations);
           setDataImportStage('four');
         });
@@ -686,7 +691,7 @@
     });
     
     //Man, I hate date pickers sooo much. Why cant FF support 'type=date' :( 
-    function dateFormatter(date) { return [date.getDate(), date.getMonth(), date.getFullYear()].join('-') };
+    function dateFormatter(date) { return [date.getFullYear(), date.getMonth(), date.getDate()].join('-') };
     $(".dataTools .startDate").minical({ trigger: ".start.calendar", date_format: dateFormatter });
     $(".dataTools .endDate").minical({ trigger: ".end.calendar", date_format: dateFormatter });
     

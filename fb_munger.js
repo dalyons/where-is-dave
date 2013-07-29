@@ -1,8 +1,10 @@
 ;(function(window) {
   var window = window, extraOwnerIds = [];
   
-  function fetchLocationImages(access_token, onComplete) {
-    var url = buildUrl(access_token);
+  function fetchLocationImages(opts, onComplete) {
+    var access_token = opts.token, from = opts.from, to = opts.to;
+    
+    var url = buildFQLUrl(access_token, from, to);
     
     $.get(url).success(function(json){
       var results = extractResults(json);
@@ -60,12 +62,18 @@
   }
 
 
-  function buildUrl(access_token) {
-    //var extraOwnerIds = [424460880913112];
+  function buildFQLUrl(access_token, from, to) {
+    //var extraOwnerIds = [424460880913112];1339210800
+    var dateFilter = '';
+    if (from) dateFilter = dateFilter + ' and created > ' + (from / 1000).toString();
+    if (to) dateFilter = dateFilter + ' and created < ' + (to / 1000).toString();
+    
     var query = JSON.stringify({
-      "photos": "select object_id, owner, caption, backdated_time, created, src_small, src, src_big, images, place_id  FROM photo WHERE (object_id IN (SELECT object_id FROM photo_tag WHERE subject=me()) or owner = me() or owner in (" + extraOwnerIds.toString() + ")) and created > 1339210800 and place_id <> '' order by created",
+      "photos": "select object_id, owner, caption, backdated_time, created, src_small, src, src_big, images, place_id  FROM photo WHERE (object_id IN (SELECT object_id FROM photo_tag WHERE subject=me()) or owner = me() or owner in (" + extraOwnerIds.toString() + ")) " + dateFilter + " and place_id <> '' order by created",
       "places": "select page_id, geometry, name, type from place where page_id in (select place_id from #photos)" 
     });
+
+    console.log(query)
     var url = 'https://graph.facebook.com/fql?q=' + escape(query);
     return url + '&access_token=' + access_token;
   }
