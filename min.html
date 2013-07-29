@@ -2,15 +2,15 @@
 <meta charset="utf-8">
 <head>
   <title>Where is dave?</title>
-  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="icon" type="image/png" href="images/favicon.png" />
   
-  <script src="d3.v3.js"></script>
-  <script src="topojson.v1.js"></script>
-  <script src="underscore-min.js"></script>
-  <script src="html5slider.js"></script>
+  <script src="lib/d3.v3.js"></script>
+  <script src="lib/topojson.v1.js"></script>
+  <script src="lib/underscore-min.js"></script>
+  <script src="lib/html5slider.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-  <script src="jquery.minical.js"></script>
-  <link href="jquery.minical.css" rel="stylesheet">
+  <script src="lib/jquery.minical.js"></script>
+  <link href="lib/jquery.minical.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
   
   <script src="fb_munger.js"></script>
@@ -534,7 +534,7 @@
     
     function clear() {
       $('.album').empty();
-      $('.featured img').removeClass('loaded').attr('src','noimage.gif');
+      $('.featured img').removeClass('loaded').attr('src','images/noimage.gif');
       $('.timeslide').val(0);
       lastPoint = null;
       loadedImgs = {};
@@ -545,7 +545,7 @@
     function preRenderAlbum(){
       var elms = _.map(locations, function(location) { 
         return '<li id="' + location.id + '">' +
-               '  <img class="albumImage" src="noimage.gif" alt="' + location.description + '" data-id="' + location.id + '"/>' +
+               '  <img class="albumImage" src="images/noimage.gif" alt="' + location.description + '" data-id="' + location.id + '"/>' +
                '</li>'
       });
       $('.album').append(elms);
