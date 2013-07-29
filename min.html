@@ -9,6 +9,8 @@
   <script src="underscore-min.js"></script>
   <script src="html5slider.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script src="jquery.minical.js"></script>
+  <link href="jquery.minical.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
   
   <script src="fb_munger.js"></script>
@@ -22,12 +24,11 @@
     ul {
       white-space: nowrap; list-style: none;
     }
-    a {
+    a, p {
       color: white; text-decoration: none;
     }
     * { 
       font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
-      color: white;
     }
     body {
       margin: 0; padding: 0;
@@ -81,6 +82,37 @@
       top: 5px;
       right: 0;
       margin-right: 8px;
+    }
+    .dataTools ul { 
+      padding-top: 10px;
+    }
+    .dataTools ul li {
+      padding-bottom: 3px;
+      color: white;
+    }
+    .dataTools input {
+      outline:none;
+      background-color: black;
+      color: white;
+      border: 0;
+      width: 100px;
+    }
+    .dataTools .two a {
+      min-width: 160px;
+      display: inline-block;
+      text-align: right;
+      margin-right: 5px;
+    }
+    .dataTools a i {
+      margin-left: 5px;
+    }
+    .step { 
+      display: none;
+    }
+    .step.selected {
+      display: block;
+      -webkit-animation: fadeIn 1s;
+      animation: fadeIn 1s;
     }
     .devTools {
       display: none;
@@ -197,6 +229,8 @@
     #defs { 
       width: 0; height: 0;
     }
+    @-webkit-keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     
   </style>
 
@@ -213,7 +247,32 @@
   
   <div class=main>
     <div class='dataTools'>
-      <a href='#' class='connectToFB'><i class='icon-cloud-download'></i>I don't care about Dave, load my own pictures!</a>
+      <div class='step selected one'>
+        <a href='#' class='importData'><i class='icon-cloud-download'></i>I don't care about Dave, load my own pictures!</a>
+      </div>
+      <div class='step two'>
+        <ul>
+          <li>
+            <a class='calendar start' href=#>Trip from<i class='calendar start icon-calendar'></i></a>
+            <input type='text' class='startDate' />
+          </li>
+          <li>
+            <a class='calendar end' href=#>Trip to<i class='calendar end icon-calendar'></i></a>
+            <input type='text' class='endDate' />
+          </li>
+          <li><a class='go' href=#>Fetch from FB<i class='icon-cloud-download'></i></a></li>
+        </ul>
+      </div>
+      <div class='step three'>
+        <ul><li>Reticulating splines....</li></ul>
+      </div>
+      <div class='step four'>
+        <ul>
+          <li>Englobulation complete! </li>
+          <li>Too messy? Tips in
+          <a href='http://github.com/dalyons/where-is-dave/blob/master/README.md' class='readme' target='_blank'><i class='icon-file-text-alt'></i>Readme</a> or <a href='#' class='reset'><i class='icon-undo'></i>Start again</a></li>
+        </p>
+      </div>
     </div>
     <div class=controls>
       <a href='#' id='play'><i class="icon-play"></i><span>Play</span></a>
@@ -471,7 +530,7 @@
     
     function clear() {
       $('.album').empty();
-      $('.featured img').removeClass('loaded').attr('src','#');
+      $('.featured img').removeClass('loaded').attr('src','noimage.gif');
       $('.timeslide').val(0);
       lastPoint = null;
       loadedImgs = {};
@@ -608,12 +667,35 @@
       FBGeoMunger.fetchLocationImages(token, loadLocationPoints);
     });
     
-    $('.dataTools .connectToFB').click(function(){
+
+    function setDataImportStage(stage){
+      $('.step').removeClass('selected');
+      $('.step.' + stage).addClass('selected');
+    }
+    $('.dataTools .importData').click(function(){
+      setDataImportStage('two');
+    });
+    $('.dataTools .go').click(function(){
+      setDataImportStage('three');
       FB.loginAndGetToken(function(accessToken, userId) {
         clear();
-        FBGeoMunger.fetchLocationImages(accessToken,loadLocationPoints)
+        FBGeoMunger.fetchLocationImages(accessToken, function(locations) {
+          loadLocationPoints(locations);
+          setDataImportStage('four');
+        });
       });
     });
+    $('.dataTools .reset').click(function(){
+      setDataImportStage('one');
+    });
+    
+    function dateFormatter(date) { return [date.getDate(), date.getMonth(), date.getFullYear()].join('-') };
+    $(".dataTools .startDate").minical({ trigger: ".start.calendar", date_format: dateFormatter });
+    $(".dataTools .endDate").minical({ trigger: ".end.calendar", date_format: dateFormatter });
+    
+    $('.dataTools .go').click(function(){
+    });
+    
 
     var playing;
     function pauseTour(btn) {
@@ -700,7 +782,8 @@
     window.fbAsyncInit = function() {
       // init the FB JS SDK
       FB.init({
-        appId      : '606058496081389',                        // App ID from the app dashboard
+        //appId      : '606058496081389',                        // App ID from the app dashboard
+        appId      : '149118415293232',                        // App ID from the app dashboard DEV
         status     : true                                 // Check Facebook Login status
       });
       
