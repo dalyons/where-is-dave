@@ -397,12 +397,14 @@
         });
       });
 
-      svg.selectAll("path.point")
-        .data(uniqueLocations)
-        .enter().append("path")
+      //draw all the dots on the svg for the uniqueLocations
+      var mapDots = svg.selectAll("path.point")
+        .data(uniqueLocations);
+      mapDots.enter().append("path")
         .attr("class", "point")
         .on("click", function(point){ moveTo(point) })
         .attr("d", path.pointRadius(2)); 
+      mapDots.exit().remove();
 
       preRenderAlbum();
       moveTo(uniqueLocations[0]);
