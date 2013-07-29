@@ -248,7 +248,7 @@
   <div class=main>
     <div class='dataTools'>
       <div class='step selected one'>
-        <a href='#' class='importData'><i class='icon-cloud-download'></i>I don't care about Dave, load my own pictures!</a>
+        <a href='#' class='action' data-next-step=two><i class='icon-cloud-download'></i>I don't care about Dave, load my own pictures!</a>
       </div>
       <div class='step two'>
         <ul>
@@ -260,7 +260,7 @@
             <a class='calendar end' href=#>Trip to<i class='calendar end icon-calendar'></i></a>
             <input type='text' class='endDate' />
           </li>
-          <li><a class='go' href=#>Fetch from FB<i class='icon-cloud-download'></i></a></li>
+          <li><a class='action' data-next-step=three href=#>Fetch from FB<i class='icon-cloud-download'></i></a></li>
         </ul>
       </div>
       <div class='step three'>
@@ -270,7 +270,7 @@
         <ul>
           <li>Englobulation complete! </li>
           <li>Too messy? Tips in
-          <a href='http://github.com/dalyons/where-is-dave/blob/master/README.md' class='readme' target='_blank'><i class='icon-file-text-alt'></i>Readme</a> or <a href='#' class='reset'><i class='icon-undo'></i>Start again</a></li>
+          <a href='http://github.com/dalyons/where-is-dave/blob/master/README.md' class='readme' target='_blank'><i class='icon-file-text-alt'></i>Readme</a> or <a href='#' class='reset action' data-next-step=one><i class='icon-undo'></i>Start again</a></li>
         </p>
       </div>
     </div>
@@ -672,11 +672,10 @@
       $('.step').removeClass('selected');
       $('.step.' + stage).addClass('selected');
     }
-    $('.dataTools .importData').click(function(){
-      setDataImportStage('two');
+    $('.dataTools .step .action').click(function() {
+      setDataImportStage($(this).data('next-step'))
     });
-    $('.dataTools .go').click(function(){
-      setDataImportStage('three');
+    $('.dataTools .step.two .action').click(function(){
       FB.loginAndGetToken(function(accessToken, userId) {
         clear();
         FBGeoMunger.fetchLocationImages(accessToken, function(locations) {
@@ -685,18 +684,12 @@
         });
       });
     });
-    $('.dataTools .reset').click(function(){
-      setDataImportStage('one');
-    });
     
+    //Man, I hate date pickers sooo much. Why cant FF support 'type=date' :( 
     function dateFormatter(date) { return [date.getDate(), date.getMonth(), date.getFullYear()].join('-') };
     $(".dataTools .startDate").minical({ trigger: ".start.calendar", date_format: dateFormatter });
     $(".dataTools .endDate").minical({ trigger: ".end.calendar", date_format: dateFormatter });
     
-    $('.dataTools .go').click(function(){
-    });
-    
-
     var playing;
     function pauseTour(btn) {
       $(btn).find('i').attr('class','icon-play');
