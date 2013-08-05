@@ -1,4 +1,3 @@
-
 ## Where is dave? - A geographic visualiser for your trip photos
 
 Reads your photos from FB, plots them on a sweet spinnable globe, and gives you an album view.  
@@ -33,8 +32,8 @@ A few tips for cleaning up your FB photos so that they can be plotted cleanly:
 
 ### Why is your JS so [NEGATIVE ADJECTIVE]
 
-I had no idea whether this would even be possible, so it was built as an evolving POC. 
-
+I had no idea whether this would even be possible, so it was built as an evolving POC.  
+Also, I left all the locations/globe stuff un-moduled & in the page src so you can inspect and fiddle with the globe easily from the console. So goes my excuse anyway.
 
 ### Future plans?
 
@@ -44,4 +43,4 @@ I also thought it would be cool to read photos from other cloud sources(Dropbox)
 
 ### Credits
 
-- D3 & the D3 spinning globe example, which is where I adopted the basic globe drawing code from. 
+- D3 Geo(amazing project) & the D3 spinning globe example, which is where I adopted the basic globe drawing code from. 
